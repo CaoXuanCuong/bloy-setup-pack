@@ -1,0 +1,5 @@
+dev-b2b-solution-api-<n>.<zonename>:4020
+dev-b2b-solution-<n>.<zonename>:4021
+dev-b2b-customer-portal-api-<n>.<zonename>:5020
+dev-b2b-customer-portal-cms-<n>.<zonename>:5021
+dev-b2b-customer-portal-<n>.<zonename>:5022
