@@ -20,7 +20,6 @@ mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
     cms.env
-    proxy.env
 )
 
 update_env() {
@@ -54,7 +53,6 @@ setup_env() {
 
     sed -i "s/PORT=.*/PORT=$CMS_PORT/" cms.env
     sed -i "s/PORT=.*/PORT=$API_PORT/" api.env
-    sed -i "s/PORT=.*/PORT=$PROXY_PORT/" proxy.env
 
     sed -i "s/<n>/$DEV_SITE/g" "${env_files[@]}"
     sed -i "s/API_VERSION=.*/API_VERSION=\"$API_VERSION\"/" "${env_files[@]}"
@@ -148,8 +146,8 @@ init_db() {
                 continue
             fi
             if [ -f "src/.sequelizerc" ]; then
-                echo "# npm run db-init"
-                npm run db-init
+                cd src
+                npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
             fi
         )
     done

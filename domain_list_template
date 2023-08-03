@@ -3,3 +3,5 @@ dev-b2b-solution-<n>.<zonename>:4021
 dev-b2b-customer-portal-api-<n>.<zonename>:5020
 dev-b2b-customer-portal-cms-<n>.<zonename>:5021
 dev-b2b-customer-portal-<n>.<zonename>:5022
+dev-login-to-access-pages-api-<n>.<zonename>:6020
+dev-login-to-access-pages-<n>.<zonename>:6021
