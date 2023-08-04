@@ -103,6 +103,7 @@ setup_env_single() {
 }
 
 init_code() {
+    rm -rf $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
@@ -130,6 +131,7 @@ init_code_single() {
     cp "$1.env" "$DESTINATION_FOLDER/$1.env"
     cd $DESTINATION_FOLDER
     source $1.env
+    rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
     echo "init code for $DIRECTORY"
     cd $DIRECTORY && git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY yarn install
