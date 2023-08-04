@@ -352,6 +352,13 @@ update_env_single)
 start)
     start
     ;;
+start_single)
+    if [ -z "$2" ]; then
+        echo "Usage: ./.sh start_single <name>"
+        exit 1
+    fi
+    start_single $2
+    ;;
 stop)
     stop
     ;;

@@ -166,6 +166,13 @@ post_setup() {
         source cms.env
         cp cms.env $DIRECTORY/web/.env
     )
+    (   
+        cd $DESTINATION_FOLDER
+        source cms.env
+        echo -e "\033[32mDONE: install\033[0m"
+        echo -e "\033[32mTo start the app run as follow:\033[0m"
+        echo -e "\033[35mcd $DESTINATION_FOLDER/$DIRECTORY && yarn dev --tunnel-url $VITE_CMS_URL:$VITE_PORT\033[0m"
+    )
     return
 }
 
@@ -286,8 +293,15 @@ install)
     init_code
     setup_env
     init_db
+    start_single api
     post_setup
-    start
+    ;;
+start_single)
+    if [ -z "$2" ]; then
+        echo "Usage: ./.sh start_single <name>"
+        exit 1
+    fi
+    start_single $2
     ;;
 init_db)
     init_db
@@ -340,7 +354,7 @@ pull)
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   init      : setup code for all services"
-    echo "   init._single <name> : setup code for single service"
+    echo "   init_single <name> : setup code for single service"
     echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"
