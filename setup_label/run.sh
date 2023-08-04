@@ -159,6 +159,7 @@ init_db_single() {
 
 post_setup() {
     # write custom post setup here
+    return
 }
 
 start() {
