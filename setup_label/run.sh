@@ -20,7 +20,6 @@ mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
     cms.env
-    proxy.env
 )
 
 update_env() {
@@ -54,15 +53,14 @@ setup_env() {
     sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" "${env_files[@]}"
     sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" "${env_files[@]}"
 
+    sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
+    sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
+
     sed -i "s/<DB_HOST>/$DB_HOST/g" "${env_files[@]}"
     sed -i "s/<DB_PORT>/$DB_PORT/g" "${env_files[@]}"
     sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" "${env_files[@]}"
     sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" "${env_files[@]}"
     sed -i "s/<DB_NAME>/$DB_NAME/g" "${env_files[@]}"
-
-    sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
-    sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
-    sed -i "s/<PROXY_PORT>/$PROXY_PORT/g" "${env_files[@]}"
     
     update_env
     echo "DONE: setup env"
@@ -89,7 +87,6 @@ setup_env_single() {
     
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
-    sed -i "s/<PROXY_PORT>/$PROXY_PORT/g" $1.env
     
     update_env_single $1
     echo "DONE: setup env for $1"
@@ -140,10 +137,7 @@ init_db() {
                 echo "ERROR: package.json is not exist in $DIRECTORY"
                 continue
             fi
-            if [ -f "src/.sequelizerc" ]; then
-                echo "# npm run db-init"
-                npm run db-init
-            fi
+            npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
         )
     done
 }
@@ -160,20 +154,11 @@ init_db_single() {
         echo "ERROR: package.json is not exist in $DIRECTORY"
         return
     fi
-    if [ -f "src/.sequelizerc" ]; then
-        cd src
-        npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
-    fi
+    npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
 }
 
 post_setup() {
-    (
-        cd $DESTINATION_FOLDER
-        source api.env
-        cd "$DIRECTORY"
-        echo "# npm run build-script"
-        npm run build-script
-    )
+    # write custom post setup here
 }
 
 start() {

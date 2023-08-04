@@ -47,21 +47,20 @@ setup_env() {
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
     cd $DESTINATION_FOLDER
-    sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/" "${env_files[@]}"
-    sed -i "s/SHOPIFY_API_SECRET_KEY=.*/SHOPIFY_API_SECRET_KEY=\"$SHOPIFY_API_SECRET_KEY\"/" api.env cms.env
-    sed -i "s/SHOPIFY_API_KEY=.*/SHOPIFY_API_KEY=\"$SHOPIFY_API_KEY\"/" cms.env
-
-    sed -i "s/PORT=.*/PORT=$CMS_PORT/" cms.env
-    sed -i "s/PORT=.*/PORT=$API_PORT/" api.env
-
+    sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/g" "${env_files[@]}"
     sed -i "s/<n>/$DEV_SITE/g" "${env_files[@]}"
-    sed -i "s/API_VERSION=.*/API_VERSION=\"$API_VERSION\"/" "${env_files[@]}"
+    sed -i "s/<API_VERSION>/$API_VERSION/g" "${env_files[@]}"
+    sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" "${env_files[@]}"
+    sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" "${env_files[@]}"
 
-    sed -i "s/DB_HOST=.*/DB_HOST=\"$DB_HOST\"/" api.env
-    sed -i "s/DB_PORT=.*/DB_PORT=$DB_PORT/" api.env
-    sed -i "s/DB_USERNAME=.*/DB_USERNAME=\"$DB_USERNAME\"/" api.env
-    sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=\"$DB_PASSWORD\"/" api.env
-    sed -i "s/DB_NAME=.*/DB_NAME=\"$DB_NAME\"/" api.env
+    sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
+    sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
+
+    sed -i "s/<DB_HOST>/$DB_HOST/g" "${env_files[@]}"
+    sed -i "s/<DB_PORT>/$DB_PORT/g" "${env_files[@]}"
+    sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" "${env_files[@]}"
+    sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" "${env_files[@]}"
+    sed -i "s/<DB_NAME>/$DB_NAME/g" "${env_files[@]}"
     
     update_env
     echo "DONE: setup env"
@@ -74,29 +73,20 @@ setup_env_single() {
     fi
     cp $1.env $DESTINATION_FOLDER/$1.env
     cd $DESTINATION_FOLDER
-    sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/" $1.env
-    sed -i "s/SHOPIFY_API_SECRET_KEY=.*/SHOPIFY_API_SECRET_KEY=$SHOPIFY_API_SECRET_KEY/" $1.env
-    sed -i "s/SHOPIFY_API_KEY=.*/SHOPIFY_API_KEY=$SHOPIFY_API_KEY/" $1.env
+    sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/g" $1.env
     sed -i "s/<n>/$DEV_SITE/g" $1.env
-    sed -i "s/API_VERSION=.*/API_VERSION=$API_VERSION/" $1.env
+    sed -i "s/<API_VERSION>/$API_VERSION/g" $1.env
+    sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" $1.env
+    sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" $1.env
 
-    sed -i "s/DB_HOST=.*/DB_HOST=\"$DB_HOST\"/" $1.env
-    sed -i "s/DB_PORT=.*/DB_PORT=$DB_PORT/" $1.env
-    sed -i "s/DB_USERNAME=.*/DB_USERNAME=\"$DB_USERNAME\"/" $1.env
-    sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=\"$DB_PASSWORD\"/" $1.env
-    sed -i "s/DB_NAME=.*/DB_NAME=\"$DB_NAME\"/" $1.env
-
-    if [[ $1 == "cms" ]]; then
-        sed -i "s/PORT=.*/PORT=$CMS_PORT/" $1.env
-    fi
-
-    if [[ $1 == "api" ]]; then
-        sed -i "s/PORT=.*/PORT=$API_PORT/" $1.env
-    fi
-
-    if [[ $1 == "proxy" ]]; then
-        sed -i "s/PORT=.*/PORT=$PROXY_PORT/" $1.env
-    fi
+    sed -i "s/<DB_HOST>/$DB_HOST/g" $1.env
+    sed -i "s/<DB_PORT>/$DB_PORT/g" $1.env
+    sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" $1.env
+    sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" $1.env
+    sed -i "s/<DB_NAME>/$DB_NAME/g" $1.env
+    
+    sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
+    sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     
     update_env_single $1
     echo "DONE: setup env for $1"

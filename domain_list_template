@@ -5,3 +5,9 @@ dev-b2b-customer-portal-cms-<n>.<zonename>:5021
 dev-b2b-customer-portal-<n>.<zonename>:5022
 dev-login-to-access-pages-api-<n>.<zonename>:6020
 dev-login-to-access-pages-<n>.<zonename>:6021
+dev-bloop-api-<n>.<zonename>:7320
+dev-bloop-cms-<n>.<zonename>:7321
+dev-bloop-share-<n>.<zonename>:7322
+dev-bloop-static-<n>.<zonename>:7323
+dev-product-labels-api-<n>.<zonename>:7420
+dev-product-labels-<n>.<zonename>:7421
