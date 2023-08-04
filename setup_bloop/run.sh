@@ -100,6 +100,7 @@ setup_env_single() {
 
 init_code() {
     rm -rf $DESTINATION_FOLDER
+    mkdir -p $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
@@ -165,6 +166,7 @@ init_db_single() {
 
 post_setup() {
     # write custom post setup here
+    return
 }
 
 start() {
@@ -284,8 +286,8 @@ install)
     init_code
     setup_env
     init_db
-    start
     post_setup
+    start
     ;;
 init_db)
     init_db

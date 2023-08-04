@@ -82,7 +82,7 @@ setup_env() {
     sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
     
     sed -i "s/<REDIS_URL>/$REDIS_URL/g" "${env_files[@]}"
-    
+
     update_env
     echo "DONE: setup env"
 }
@@ -116,6 +116,7 @@ setup_env_single() {
 
 init_code() {
     rm -rf $DESTINATION_FOLDER
+    mkdir -p $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
@@ -315,8 +316,8 @@ install)
     init_code
     setup_env
     init_db
-    start
     post_setup
+    start
     ;;
 init_db)
     init_db

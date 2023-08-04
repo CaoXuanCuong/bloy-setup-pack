@@ -20,6 +20,7 @@ mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
     cms.env
+
 )
 
 update_env() {
@@ -94,6 +95,7 @@ setup_env_single() {
 
 init_code() {
     rm -rf $DESTINATION_FOLDER
+    mkdir -p $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
@@ -159,6 +161,12 @@ init_db_single() {
 
 post_setup() {
     # write custom post setup here
+    (
+        cd $DESTINATION_FOLDER
+        source cms.env
+        cp cms.env $DIRECTORY/web/.env
+    )
+    return
 }
 
 start() {
@@ -278,8 +286,8 @@ install)
     init_code
     setup_env
     init_db
-    start
     post_setup
+    start
     ;;
 init_db)
     init_db
