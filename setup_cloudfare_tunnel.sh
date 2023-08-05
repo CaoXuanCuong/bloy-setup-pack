@@ -65,7 +65,7 @@ ingress:
 EOF
 
 while IFS=: read -r line || [[ -n "$line" ]]; do
-  if [[ -z "$line" ]]; then
+  if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
     continue
   fi
   # Extract record and port

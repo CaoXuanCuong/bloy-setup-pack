@@ -13,4 +13,6 @@ dev-product-labels-api-<n>.<zonename>:7420
 dev-product-labels-<n>.<zonename>:7421
 dev-product-options-api-<n>.<zonename>:7520
 dev-product-options-cms-<n>.<zonename>:7521
+dev-store-locator-api-<n>.<zonename>:7620
+dev-store-locator-<n>.<zonename>:7621
 
