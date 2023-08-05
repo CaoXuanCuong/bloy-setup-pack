@@ -29,6 +29,9 @@ cp domain_list_template domain_list
 sed -i "s/<n>/$DEV_SITE/g" domain_list
 sed -i "s/<zonename>/$CF_ZONE_NAME/g" domain_list
 
+rm -f $CONFIG_FILE
+rm -f /etc/cloudflared/config.yml
+
 # create cloudflare tunnel config file
 mkdir -p /root/.cloudflared /etc/cloudflared
 cp cert.pem /root/.cloudflared/cert.pem 
@@ -53,8 +56,6 @@ if [ ! -f "/root/.cloudflared/$CF_TUNNEL_ID.json" ]; then
   fi
 fi
 
-rm -f $CONFIG_FILE
-rm -f /etc/cloudflared/config.yml
 # Create config file header
 cat <<EOF > $CONFIG_FILE
 tunnel: $CF_TUNNEL_ID
@@ -64,6 +65,9 @@ ingress:
 EOF
 
 while IFS=: read -r line || [[ -n "$line" ]]; do
+  if [[ -z "$line" ]]; then
+    continue
+  fi
   # Extract record and port
   record=$(echo "$line" | awk -F':' '{print $1}')
   port=$(echo "$line" | awk -F':' '{print $2}')
