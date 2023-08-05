@@ -304,6 +304,16 @@ install_single)
     install_single $2
     setup_env_single api
     ;;
+restart)
+    start
+    ;;
+restart_single)
+    if [ -z "$2" ]; then
+        echo "Usage: ./.sh restart_single <name>"
+        exit 1
+    fi
+    start_single $2
+    ;;
 setup_env)
     setup_env
     ;;
@@ -355,7 +365,7 @@ pull)
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   init      : setup code for all services"
-    echo "   init._single <name> : setup code for single service"
+    echo "   init_single <name> : setup code for single service"
     echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"

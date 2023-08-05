@@ -28,7 +28,6 @@ update_env() {
         (
             cd $DESTINATION_FOLDER
             source $env_file
-           
             if [[ $env_file == "cms.env" ]]; then
                 cp $env_file $DIRECTORY/web/.env
             else
@@ -36,7 +35,6 @@ update_env() {
             fi
         )
     done
-
 }
 
 update_env_single() {
@@ -45,7 +43,6 @@ update_env_single() {
         exit 1
     fi
     cd $DESTINATION_FOLDER
-    source $1.env
     source $1.env
     if [[ $1 == "cms" ]]; then
         cp $1.env $DIRECTORY/web/.env
@@ -177,7 +174,7 @@ post_setup() {
         echo -e "\033[32mDONE: install\033[0m"
         echo -e "\033[32mTo start the app run as follow:\033[0m"
         echo -e "\033[35mcd $DESTINATION_FOLDER/$DIRECTORY\033[0m"
-        echo -e "\033[35myarn dev --tunnel-url https://$VITE_CMS_URL:$VITE_PORT\033[0m"
+        echo -e "\033[35myarn dev --tunnel-url https://$VITE_HOST:$VITE_PORT\033[0m"
     )
     return
 }

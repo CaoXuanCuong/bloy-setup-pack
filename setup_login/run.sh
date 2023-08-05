@@ -288,6 +288,7 @@ init_single)
     setup_env_single $2
     ;;
 install)
+    echo -e "\033[32mInstalling...\033[0m"
     init_code
     setup_env
     init_db
@@ -298,8 +299,19 @@ init_db)
     init_db
     ;;
 install_single)
+    echo -e "\033[32mInstalling...\033[0m"  
     install_single $2
     setup_env_single api
+    ;;
+restart)
+    start
+    ;;
+restart_single)
+    if [ -z "$2" ]; then
+        echo "Usage: ./.sh restart_single <name>"
+        exit 1
+    fi
+    start_single $2
     ;;
 setup_env)
     setup_env

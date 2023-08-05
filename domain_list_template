@@ -11,3 +11,6 @@ dev-bloop-share-<n>.<zonename>:7322
 dev-bloop-static-<n>.<zonename>:7323
 dev-product-labels-api-<n>.<zonename>:7420
 dev-product-labels-<n>.<zonename>:7421
+dev-product-options-api-<n>.<zonename>:7520
+dev-product-options-cms-<n>.<zonename>:7521
+
