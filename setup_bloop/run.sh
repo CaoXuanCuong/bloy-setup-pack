@@ -142,7 +142,7 @@ init_db() {
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
                 echo "ERROR: package.json is not exist in $DIRECTORY"
-                continue
+                exit
             fi
             npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
         )
@@ -182,7 +182,7 @@ start() {
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
-                    continue
+                    exit
                 fi
                 echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
                 pm2 start npm --name $PROCESS_NAME -- run dev

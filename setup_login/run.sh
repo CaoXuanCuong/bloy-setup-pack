@@ -136,7 +136,7 @@ init_db() {
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
                 echo "ERROR: package.json is not exist in $DIRECTORY"
-                continue
+                exit
             fi
             if [ -f "src/.sequelizerc" ]; then
                 cd src
@@ -187,7 +187,7 @@ start() {
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
-                    continue
+                    exit
                 fi
                 echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
                 pm2 start npm --name $PROCESS_NAME -- run dev
@@ -294,6 +294,11 @@ install)
     init_db
     post_setup
     start
+    (
+        cd $DESTINATION_FOLDER
+        source cms.env
+        echo -e "\e[32mCMS URL: $SERVER_URL\e[0m"
+    )
     ;;
 init_db)
     init_db

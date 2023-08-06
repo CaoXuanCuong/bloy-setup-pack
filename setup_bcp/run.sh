@@ -139,7 +139,7 @@ init_db() {
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
                 echo "ERROR: package.json is not exist in $DIRECTORY"
-                continue
+                exit
             fi
             if [ -f "src/.sequelizerc" ]; then
                 echo "# npm run db-init"
@@ -190,7 +190,7 @@ start() {
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
-                    continue
+                    exit
                 fi
                 echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
                 pm2 start npm --name $PROCESS_NAME -- run dev
