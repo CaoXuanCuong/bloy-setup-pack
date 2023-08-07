@@ -65,6 +65,10 @@ cp app.env.example app.env
 ```
 Then edit app.env environment variables
 
+```bash
+nano app.env
+```
+
 4.2. Run setup script
 
 ```bash
