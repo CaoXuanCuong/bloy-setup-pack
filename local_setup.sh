@@ -17,13 +17,11 @@ source script.env
 function check_systemd_enabled() {
   if [[ $(systemctl is-system-running) == "offline" ]]; then
     echo "${Red}********Systemd is not enabled********${Color_Off}"
-    # try to enable systemd create new file /etc/wsl.conf
-    echo "${Green}********Creating wsl.conf********${Color_Off}"
     tee /etc/wsl.conf <<EOF
-    [boot]
-    systemd=true
+[boot]
+systemd=true
 EOF
-    echo "${Red}********Please restart wsl by opening window powershell and run command: wsl --shutdown********${Color_Off}"
+    echo "${Red}********Please restart wsl by opening window powershell and run command: wsl.exe --shutdown********${Color_Off}"
     exit 1
   fi
 }
@@ -56,15 +54,15 @@ function install_nvm_and_node() {
     return
   fi
 
-  echo "${Green}********Install nvm and node 16.16.0********${Color_Off}"
+  echo "${Green}********Install nvm and node 16.20.1********${Color_Off}"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
   source ~/.bashrc
   source ~/.nvm/nvm.sh
-  nvm install 16.16.0
-  nvm alias default 16.16.0
+  nvm install 16.20.1
+  nvm alias default 16.20.1
   nvm use default
   npm install pm2 -g
-  sudo env PATH=\$PATH:~/.nvm/versions/node/v16.16.0/bin ~/.nvm/versions/node/v16.16.0/lib/node_modules/pm2/bin/pm2 startup systemd -u dev --hp ~
+  sudo env PATH=\$PATH:~/.nvm/versions/node/v16.20.1/bin ~/.nvm/versions/node/v16.20.1/lib/node_modules/pm2/bin/pm2 startup systemd -u dev --hp ~
 EOF
 }
 

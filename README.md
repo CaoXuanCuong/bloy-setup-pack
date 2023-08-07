@@ -1,5 +1,14 @@
-## 1. Setup WSL (skip this if you are using Mac or Linux)
+## 1. Setup WSL and VSCode (skip this if you are using Mac or Linux)
 Follow this tutorial [link](https://learn.microsoft.com/en-us/windows/wsl/install) to setup WSL
+
+Quick setup:
+- Open PowerShell as Administrator and run:
+```bash
+wsl.exe --update
+wsl.exe --install -d Ubuntu-22.04
+```
+
+- Install VSCode and Remote WSL extension
 
 If you need help, contact devops team to assist you
 
@@ -64,6 +73,9 @@ cd setup_<app_folder>
 cp app.env.example app.env
 ```
 Then edit app.env environment variables
+```bash
+nano app.env
+```
 
 ```bash
 nano app.env
