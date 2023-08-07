@@ -46,6 +46,7 @@ sudo bash local_setup.sh init
 
 ## 4. Setup development project
 Apps which are supported by this script:
+
 - B2B Solution: folder `setup_b2b`
 - B2B Customer Portal: folder `setup_bcp`
 - Login Access Management: folder `setup_login`
