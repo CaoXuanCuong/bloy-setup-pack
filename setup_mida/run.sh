@@ -166,6 +166,7 @@ setup_python_environment() {
     sudo apt update
     sudo apt install python3.8 -y
     sudo apt install python3.8-venv -y
+    sudo apt install python3-pip -y
 }
 
 install_dependencies() {
@@ -200,6 +201,9 @@ install_dependencies() {
 
         if [ "$answer" != "${answer#[Yy]}" ] ;then
             echo "INFO: installing mongosh..."
+            curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
+            sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg \
+            --dearmor
             echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
             sudo apt update
             sudo apt install -y mongodb-org
@@ -344,7 +348,7 @@ install_single() {
 case ${option} in
 install_dependencies)
     install_dependencies
-    # setup_python_environment
+    setup_python_environment
     ;;
 init)
     init_code
