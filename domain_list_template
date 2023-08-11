@@ -15,4 +15,5 @@ dev-product-options-api-<n>.<zonename>:7520
 dev-product-options-cms-<n>.<zonename>:7521
 dev-store-locator-api-<n>.<zonename>:7620
 dev-store-locator-<n>.<zonename>:7621
-
+dev-mida-api-<n>.<zonename>:7720
+dev-mida-<n>.<zonename>:7721
