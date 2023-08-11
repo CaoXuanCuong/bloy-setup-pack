@@ -15,7 +15,6 @@ if ! command -v npm &>/dev/null; then
 fi
 
 source app.env
-corepack enable
 mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
@@ -124,7 +123,7 @@ init_code() {
             echo "install code and packages in $DIRECTORY"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                yarn install
+                npm install
             fi
             if [ -f "requirements.txt" ]; then
                 python3.8 -m venv venv
@@ -148,7 +147,7 @@ init_code_single() {
     cd $DIRECTORY 
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
     if [ -f "package.json" ]; then
-        yarn install
+        npm install
     fi
     if [ -f "requirements.txt" ]; then
         python3.8 -m venv venv
@@ -204,9 +203,32 @@ install_dependencies() {
             echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
             sudo apt update
             sudo apt install -y mongodb-org
-            mongosh $MONGO_DB --eval "db.createUser({user: '$MONGO_USER', pwd: '$MONGO_PASSWORD', roles: [{role: 'dbOwner', db: '$MONGO_DB'}]})"
+            # create or overwrite mongod.conf
+            sudo tee /etc/mongod.conf > /dev/null <<EOF
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+storage:
+  dbPath: /var/lib/mongodb
+#  engine:
+#  wiredTiger:
+
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongod.log
+
+net:
+  port: 27017
+  bindIp: 127.0.0.1
+
+processManagement:
+  timeZoneInfo: /usr/share/zoneinfo
+EOF
             sudo sed -i "s/port:.*/port: $MONGO_PORT/" /etc/mongod.conf
             sudo systemctl restart mongod
+            sleep 5
+            mongosh $MONGO_DB --eval "db.createUser({user: '$MONGO_USER', pwd: '$MONGO_PASSWORD', roles: [{role: 'dbOwner', db: '$MONGO_DB'}]})" --port $MONGO_PORT
         fi
     fi
 }
@@ -322,7 +344,7 @@ install_single() {
 case ${option} in
 install_dependencies)
     install_dependencies
-    setup_python_environment
+    # setup_python_environment
     ;;
 init)
     init_code
