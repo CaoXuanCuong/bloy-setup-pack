@@ -77,10 +77,6 @@ Then edit app.env environment variables
 nano app.env
 ```
 
-```bash
-nano app.env
-```
-
 4.2. Run setup script
 
 ```bash
