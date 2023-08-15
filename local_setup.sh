@@ -34,6 +34,8 @@ function install_dependencies() {
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';FLUSH PRIVILEGES;"
+  # create root remote
+  mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
 
   if ! command -v cloudflared &>/dev/null; then
     # install cloudflare cli
