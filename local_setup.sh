@@ -28,22 +28,18 @@ EOF
 
 # install required packages
 function install_dependencies() {
-  # check if dependencies are installed then return
-  if command -v cloudflared &>/dev/null; then
-    echo "INFO: dependencies are already installed"
-    return
-  fi
-  
-  # install cloudflare cli
-  echo "${Green}********Installing cloudflare cli********${Color_Off}"
-  mkdir -p --mode=0755 /usr/share/keyrings
-  wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
   echo "${Green}********Installing required packages********${Color_Off}"
   apt update
-  apt install -y curl mysql-server redis openssh-server
+  apt install -y curl wget mysql-server redis openssh-server
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';FLUSH PRIVILEGES;"
+
+  if ! command -v cloudflared &>/dev/null; then
+    # install cloudflare cli
+    echo "${Green}********Installing cloudflare cli********${Color_Off}"
+    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
+  fi
 }
 
 function install_nvm_and_node() {
@@ -61,7 +57,7 @@ function install_nvm_and_node() {
   nvm install 16.20.1
   nvm alias default 16.20.1
   nvm use default
-  npm install pm2 -g
+  npm install pm2 nodemon -g
   sudo env PATH=\$PATH:~/.nvm/versions/node/v16.20.1/bin ~/.nvm/versions/node/v16.20.1/lib/node_modules/pm2/bin/pm2 startup systemd -u $SUDO_USER --hp ~
 EOF
 }

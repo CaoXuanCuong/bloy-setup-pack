@@ -156,7 +156,13 @@ init_code_single() {
 }
 
 post_setup() {
-    return
+    (
+        cd $DESTINATION_FOLDER
+        source api.env
+        cd "$DIRECTORY"
+        echo "# npm run build-msr"
+        npm run build-msr
+    )
 }
 
 setup_python_environment() {
