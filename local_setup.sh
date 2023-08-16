@@ -34,8 +34,14 @@ function install_dependencies() {
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';FLUSH PRIVILEGES;"
-  # create root remote
+  
   mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
+
+  sleep 5
+  echo "${Green}********Configuring mysql bind address********${Color_Off}"
+  sed -i -E 's,bind-address.*$,bind-address = 0.0.0.0,g' /etc/mysql/mysql.conf.d/mysqld.cnf
+  echo "Restarting mysql service..."
+  systemctl restart mysql
 
   if ! command -v cloudflared &>/dev/null; then
     # install cloudflare cli
@@ -190,6 +196,18 @@ setup_tailscale)
 setup_shell)
   setup_shell
   ;;
+config_os)
+  config_os
+  ;;
+install_dependencies)
+  install_dependencies
+  ;;
+install_nvm_and_node)
+  install_nvm_and_node
+  ;;
+config_ssh)
+  config_ssh
+  ;;
 setup_cloudfare_tunnel)
   setup_cloudflare_tunnel
   ;;
@@ -200,5 +218,9 @@ setup_cloudfare_tunnel)
   echo "  setup_tailscale : setup tailscale (for workplace devices only, install in case you need assistance from devops team)"
   echo "  setup_shell : setup zsh shell"
   echo "  setup_cloudfare_tunnel : setup cloudflare tunnel"
+  echo "  config_os : config os"
+  echo "  install_dependencies : install dependencies"
+  echo "  install_nvm_and_node : install nvm and node"
+  echo "  config_ssh : config ssh"
   ;;
 esac

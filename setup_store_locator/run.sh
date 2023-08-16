@@ -193,8 +193,13 @@ start() {
                 if [ ! -f "package.json" ]; then
                     exit
                 fi
-                echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
-                pm2 start npm --name $PROCESS_NAME -- run dev
+                if [ $env_file == "cms.env" ]; then
+                    echo "# NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js "
+                    NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js 
+                else
+                    echo "# NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev"
+                    NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
+                fi
             fi
         )
     done
@@ -215,10 +220,15 @@ start_single() {
         echo "# pm2 restart $PROCESS_NAME"
         pm2 restart $PROCESS_NAME --update-env
     else
-        if [ -f "package.json" ]; then
-            echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
-            pm2 start npm --name $PROCESS_NAME -- run dev
-            pm2 save
+        if [ ! -f "package.json" ]; then
+                    exit
+        fi
+        if [ $1 == "cms" ]; then
+            echo "# NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js "
+            NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js 
+        else
+            echo "# NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev"
+            NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
         fi
     fi
 }
@@ -259,10 +269,14 @@ pull() {
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
-            echo "# git pull origin master"
-            git stash
-            git checkout master
-            git pull origin master
+            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo -e "\033[32m# $DIRECTORY branch: $GIT_BRANCH\033[0m"
+            if git fetch origin master && ! git diff --quiet HEAD FETCH_HEAD; then
+                echo "You need to pull manually and resolve conflicts"
+            else
+                echo "No conflicts detected, pulling changes from remote"
+                git pull origin master
+            fi
         )
     done
 }
@@ -276,6 +290,30 @@ install_single() {
     (setup_env_single $1)
     (init_db_single $1)
     (start_single $1)
+}
+
+start_production() {
+    (clean_process)
+
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+
+            if [ ! -f "package.json" ]; then
+                    exit
+            fi
+            if [ $env_file == "cms.env" ]; then
+                npm run build                    
+            fi
+            if [ $env_file == "api.env" ]; then
+                npm run build-script
+            fi
+            pm2 start npm --name $PROCESS_NAME-prod -- run start
+        )
+    done
+    pm2 save
 }
 
 case ${option} in
@@ -355,6 +393,9 @@ start_single)
     fi
     start_single $2
     ;;
+start_production)
+    start_production
+    ;;
 stop)
     stop
     ;;
@@ -373,13 +414,15 @@ pull)
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   init      : setup code for all services"
-    echo "   init._single <name> : setup code for single service"
+    echo "   init_single <name> : setup code for single service"
     echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"
     echo "   update_env : update cms, api .env file"
     echo "   update_env_single <name> : update single env file"
     echo "   start      : start processes"
+    echo "   start_single <name> : start single process"
+    echo "   start_production : start production processes"
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"

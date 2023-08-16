@@ -332,10 +332,14 @@ pull() {
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
-            echo "# git pull origin master"
-            git stash
-            git checkout master
-            git pull origin master
+            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo -e "\033[32m# $DIRECTORY branch: $GIT_BRANCH\033[0m"
+            if git fetch origin master && ! git diff --quiet HEAD FETCH_HEAD; then
+                echo "You need to pull manually and resolve conflicts"
+            else
+                echo "No conflicts detected, pulling changes from remote"
+                git pull origin master
+            fi
         )
     done
 }

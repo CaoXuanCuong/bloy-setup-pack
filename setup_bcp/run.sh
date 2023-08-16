@@ -258,10 +258,14 @@ pull() {
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
-            echo "# git pull origin master"
-            git stash
-            git checkout master
-            git pull origin master
+            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo -e "\033[32m# $DIRECTORY branch: $GIT_BRANCH\033[0m"
+            if git fetch origin master && ! git diff --quiet HEAD FETCH_HEAD; then
+                echo "You need to pull manually and resolve conflicts"
+            else
+                echo "No conflicts detected, pulling changes from remote"
+                git pull origin master
+            fi
         )
     done
 }
@@ -275,6 +279,30 @@ install_single() {
     (setup_env_single $1)
     (init_db_single $1)
     (start_single $1)
+}
+
+start_production() {
+    (clean_process)
+
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+
+            if [ ! -f "package.json" ]; then
+                    exit
+            fi
+            if [ $env_file == "cms.env" ] || [ $env_file == "proxy.env" ]; then
+                npm run build
+            fi
+            if [ $env_file == "api.env" ]; then
+                npm run build-script
+            fi
+            pm2 start npm --name $PROCESS_NAME-prod -- run start
+        )
+    done
+    pm2 save
 }
 
 case ${option} in
@@ -347,6 +375,9 @@ start_single)
     fi
     start_single $2
     ;;
+start_production)
+    start_production
+    ;;
 stop)
     stop
     ;;
@@ -372,6 +403,9 @@ pull)
     echo "   update_env : update cms, api .env file"
     echo "   update_env_single <name> : update single env file"
     echo "   start      : start processes"
+    echo "   start_single <name> : start single process"
+    echo "   start_production : start production processes"
+    echo "   restart    : restart processes"
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"
