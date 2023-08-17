@@ -2,6 +2,12 @@
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPTDIR
 
+if ! command -v cloudflared &>/dev/null; then
+    # install cloudflare cli
+    echo "${Green}********Installing cloudflare cli********${Color_Off}"
+    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
+fi
+
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in

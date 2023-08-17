@@ -13,10 +13,24 @@ SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 option="${1}"
 source script.env
 
+IS_WSL=$(uname -a | grep -i microsoft)
+
+echo "${Green}********Starting setup********${Color_Off}"
+
+if [[ $IS_WSL == "" ]]; then
+  echo "${Red}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
+else
+  echo "${Red}******** This is a WSL machine ********${Color_Off}"
+fi
+
 # check if systemd is enabled
 function check_systemd_enabled() {
+  if [[ $IS_WSL == "" ]]; then
+    echo "${Red}******** Skipping check systemd ********${Color_Off}"
+    return;
+  fi
   if [[ $(systemctl is-system-running) == "offline" ]]; then
-    echo "${Red}********Systemd is not enabled********${Color_Off}"
+    echo "${Red}******** Systemd is not enabled ********${Color_Off}"
     tee /etc/wsl.conf <<EOF
 [boot]
 systemd=true
@@ -28,6 +42,10 @@ EOF
 
 # install required packages
 function install_dependencies() {
+  if [[ $IS_WSL == "" ]]; then
+    echo "${Red}******** Skipping install dependencies (mysql, redis) ********${Color_Off}"
+    return;
+  fi
   echo "${Green}********Installing required packages********${Color_Off}"
   apt update
   apt install -y curl wget mysql-server redis openssh-server
@@ -36,17 +54,11 @@ function install_dependencies() {
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
   
   sleep 5
-  
+
   echo "${Green}********Configuring mysql bind address********${Color_Off}"
   sed -i -E 's,bind-address.*$,bind-address = 0.0.0.0,g' /etc/mysql/mysql.conf.d/mysqld.cnf
   echo "Restarting mysql service..."
   systemctl restart mysql
-
-  if ! command -v cloudflared &>/dev/null; then
-    # install cloudflare cli
-    echo "${Green}********Installing cloudflare cli********${Color_Off}"
-    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
-  fi
 }
 
 function install_nvm_and_node() {
@@ -88,6 +100,10 @@ function setup_tailscale() {
 }
 
 function config_os() {
+  if [[ $IS_WSL == "" ]]; then
+    echo "${Red}******** Skipping config os ********${Color_Off}"
+    return;
+  fi
   # config sudo nopasswd
   echo "${Green}********Config sudo nopasswd********${Color_Off}"
   sed -i -E 's,^%sudo.*$,%sudo ALL=(ALL:ALL) NOPASSWD:ALL,g' /etc/sudoers
@@ -98,6 +114,11 @@ function config_os() {
 }
 
 function config_ssh() {
+  if [[ $IS_WSL == "" ]]; then
+    echo "${Red}******** Skipping config ssh ********${Color_Off}"
+    return;
+  fi
+
   sed -i -E 's,^#?Port.*$,Port 8022,' /etc/ssh/sshd_config
   sed -i -E 's,^#?PasswordAuthentication.*$,PasswordAuthentication yes,' /etc/ssh/sshd_config
   sed -i -E 's,^#?PermitEmptyPasswords.*$,PermitEmptyPasswords yes,' /etc/ssh/sshd_config
@@ -110,7 +131,7 @@ function config_ssh() {
 function setup_shell() {
   echo "${Green}********Configuring shell********${Color_Off}"
   if [[ -f "/root/.zshrc" ]]; then
-    echo "zsh is already installed"
+    echo "zsh is already installed. skipping"
     return
   fi
 
