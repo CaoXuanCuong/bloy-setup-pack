@@ -13,6 +13,11 @@ SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 option="${1}"
 source script.env
 
+if [[ "$DEV_SITE" == "<DEV_SITE ID>" || "$USERNAME" == "<YOUR USERNAME>" ]]; then
+  echo "${Red}********Please update DEV_SITE and USERNAME in script.env file********${Color_Off}"
+fi
+  
+
 IS_WSL=$(uname -a | grep -i microsoft)
 
 echo "${Green}********Starting setup********${Color_Off}"
