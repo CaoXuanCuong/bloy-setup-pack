@@ -33,11 +33,10 @@ function install_dependencies() {
   apt install -y curl wget mysql-server redis openssh-server
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
-  mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';FLUSH PRIVILEGES;"
+  mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
   
-  mysql -e "CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
-
   sleep 5
+  
   echo "${Green}********Configuring mysql bind address********${Color_Off}"
   sed -i -E 's,bind-address.*$,bind-address = 0.0.0.0,g' /etc/mysql/mysql.conf.d/mysqld.cnf
   echo "Restarting mysql service..."
