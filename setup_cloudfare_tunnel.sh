@@ -98,7 +98,7 @@ if [ "$(systemctl is-enabled cloudflared.service)" == "enabled" ]; then
   cp $CONFIG_FILE /etc/cloudflared/config.yml
   sudo systemctl restart cloudflared
 else
-  echo "INFO: installing cloudflared service..."
+  echo "INFO: not found cloudflared, installing cloudflared service..."
   rm -f /etc/cloudflared/config.yml
   rm -f cloudflared-update.service cloudflared.service
   sudo cloudflared service install

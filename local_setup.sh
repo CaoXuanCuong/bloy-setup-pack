@@ -15,6 +15,7 @@ source script.env
 
 if [[ "$DEV_SITE" == "<DEV_SITE ID>" || "$USERNAME" == "<YOUR USERNAME>" ]]; then
   echo "${Red}********Please update DEV_SITE and USERNAME in script.env file********${Color_Off}"
+  exit 1
 fi
   
 
@@ -48,8 +49,12 @@ EOF
 # install required packages
 function install_dependencies() {
   if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Skipping install dependencies (mysql, redis) ********${Color_Off}"
-    return;
+    echo "${Red}******** Do you want to install dependencies (mysql, redis) (y/n) ********${Color_Off}"
+    read -r answer
+    if [[ $answer == "n" ]]; then
+      echo "${Red}******** Skipping install dependencies ********${Color_Off}"
+      return;
+    fi
   fi
   echo "${Green}********Installing required packages********${Color_Off}"
   apt update
