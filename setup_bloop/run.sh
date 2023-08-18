@@ -261,7 +261,7 @@ pull() {
             source $env_file
             cd "$DIRECTORY"
             GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo -e "\033[32m# $DIRECTORY branch: $GIT_BRANCH\033[0m"
+            echo -e "\033[32m\n----------- ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
 
             git fetch origin
             git merge --no-commit --no-ff origin/master
