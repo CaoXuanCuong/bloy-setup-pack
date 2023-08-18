@@ -269,9 +269,13 @@ pull() {
             echo -e "\033[32m\n----------- ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
 
             git fetch origin
-            git merge --no-commit --no-ff origin/master
+            OUTPUT=$(git merge --no-commit --no-ff origin/master)
             
             if [ $? -eq 0 ]; then
+                if [[ $OUTPUT == *"up to date"* ]]; then
+                    echo -e "\033[32mINFO: Already up to date.\033[0m"
+                    exit
+                fi
                 git commit -m "Merge branch 'master' into $GIT_BRANCH"
                 echo -e "\033[32mSUCCESS: Merge branch 'master' into $GIT_BRANCH\033[0m"
             else
