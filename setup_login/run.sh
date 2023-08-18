@@ -267,11 +267,16 @@ pull() {
             cd "$DIRECTORY"
             GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo -e "\033[32m# $DIRECTORY branch: $GIT_BRANCH\033[0m"
-            if git fetch origin master && ! git diff --quiet HEAD FETCH_HEAD; then
-                echo "You need to pull manually and resolve conflicts"
+
+            git fetch origin
+            git merge --no-commit --no-ff origin/master
+            
+            if [ $? -eq 0 ]; then
+                git commit -m "Merge branch 'master' into $GIT_BRANCH"
+                echo -e "\033[32mSUCCESS: Merge branch 'master' into $GIT_BRANCH\033[0m"
             else
-                echo "No conflicts detected, pulling changes from remote"
-                git pull origin master
+                git merge --abort
+                echo -e "\033[31mERROR: Git pull failed, you need to pull and resolve conflicts manually\033[0m"
             fi
         )
     done

@@ -64,7 +64,8 @@ function install_dependencies() {
   fi
   echo "${Green}********Installing required packages********${Color_Off}"
   nala update
-  nala install -y curl wget mysql-server redis openssh-server
+  nala install -y git curl wget mysql-server redis openssh-server
+  git config --global alias.mergediff '!f(){ branch="$1" ; into="$2" ; git merge-tree $(git merge-base "$branch" "$into") "$into" "$branch" ; };f '
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
