@@ -46,6 +46,12 @@ EOF
   fi
 }
 
+echo "Installing nala package manager..."
+if ! command -v nala &>/dev/null; then
+  sudo apt update
+  sudo apt install nala -y
+fi
+
 # install required packages
 function install_dependencies() {
   if [[ $IS_WSL == "" ]]; then
@@ -57,8 +63,8 @@ function install_dependencies() {
     fi
   fi
   echo "${Green}********Installing required packages********${Color_Off}"
-  apt update
-  apt install -y curl wget mysql-server redis openssh-server
+  nala update
+  nala install -y curl wget mysql-server redis openssh-server
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
@@ -151,7 +157,7 @@ function setup_shell() {
 
   # install zsh and oh-my-zsh
   echo "${Green}********Installing zsh and oh-my-zsh********${Color_Off}"
-  apt install -y zsh
+  nala install -y zsh
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
   # install plugins
@@ -198,6 +204,10 @@ function setup_cloudflare_tunnel() {
   bash $SCRIPTDIR/setup_cloudfare_tunnel.sh
 }
 
+function setup_visualize() {
+  bash $SCRIPTDIR/setup_visualize.sh
+}
+
 function init() {
   check_systemd_enabled
   config_os
@@ -240,6 +250,9 @@ config_ssh)
   ;;
 setup_cloudfare_tunnel)
   setup_cloudflare_tunnel
+  ;;
+setup_visualize)
+  setup_visualize
   ;;
 *)
   echo "Usage: ./local_setup <option>"
