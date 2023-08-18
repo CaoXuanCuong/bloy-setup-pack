@@ -53,6 +53,13 @@ Edit script.env file and change the value of the following variables:
 sudo bash local_setup.sh init
 ```
 
+Run this after you have finished setup dev environment
+
+```bash
+zsh
+pm2 startup
+```
+
 ## 4. Setup development project
 Apps which are supported by this script:
 
@@ -63,6 +70,7 @@ Apps which are supported by this script:
 - Product Labels: folder `setup_label`
 - Product Options: folder `setup_option`
 - Store Locator: folder `setup_locator`
+- Mida Recording: folder `setup_mida`
 
 Steps to setup development project:
 
@@ -73,9 +81,14 @@ cd setup_<app_folder>
 cp app.env.example app.env
 ```
 Then edit app.env environment variables
+
 ```bash
 nano app.env
 ```
+
+NOTE: 
+- You only need to change variables which are in brackets `< >` in app.env, don't change other variables or other files
+- The script will read app.env and automatically setup other env files
 
 4.2. Run setup script
 
@@ -90,6 +103,28 @@ _Notes: In case you want to update environment variables, you can run the follow
 bash run.sh setup_env
 bash run.sh restart
 ```
+
+## 5. Using run.sh script
+Usage
+
+To use the run.sh script, navigate to the directory containing the script and execute it using the following command:
+
+```bash
+bash run.sh <command>
+```
+
+Commands
+
+- `install`: Install the development project (automatically setup environment variables, install dependencies, start the development app)
+- `setup_env`: Setup environment variables
+- `restart`: Restart app processes (api, cms, ...)
+- `start`: Start app processes 
+- `stop`: Stop app processes 
+- `clean_process`: Delete app processes
+- `clean`: Delete app source code and processes
+- `pull`: Pull latest source code from origin master 
+
+
 
 
 

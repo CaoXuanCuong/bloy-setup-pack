@@ -94,6 +94,7 @@ function install_nvm_and_node() {
   nvm alias default 16.20.1
   nvm use default
   npm install pm2 nodemon -g
+  pm2 startup
   sudo env PATH=\$PATH:~/.nvm/versions/node/v16.20.1/bin ~/.nvm/versions/node/v16.20.1/lib/node_modules/pm2/bin/pm2 startup systemd -u $SUDO_USER --hp ~
 EOF
 }
