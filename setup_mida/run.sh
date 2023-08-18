@@ -176,13 +176,13 @@ post_setup() {
 }
 
 setup_python_environment() {
-    sudo apt update
-    sudo apt install software-properties-common
+    sudo nala update
+    sudo nala install software-properties-common
     sudo add-apt-repository ppa:deadsnakes/ppa -y
-    sudo apt update
-    sudo apt install python3.8 -y
-    sudo apt install python3.8-venv -y
-    sudo apt install python3-pip -y
+    sudo nala update
+    sudo nala install python3.8 -y
+    sudo nala install python3.8-venv -y
+    sudo nala install python3-pip -y
 }
 
 install_dependencies() {
@@ -194,14 +194,14 @@ install_dependencies() {
 
         if [ "$answer" != "${answer#[Yy]}" ] ;then
             echo "INFO: installing rabbitmq-server..."
-            sudo apt update
-            sudo apt install gnupg2 software-properties-common apt-transport-https lsb-release -y 
+            sudo nala update
+            sudo nala install gnupg2 software-properties-common apt-transport-https lsb-release -y 
             curl -1sLf 'https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-erlang/setup.deb.sh' | sudo -E bash
-            sudo apt update
-            sudo apt install erlang -y
+            sudo nala update
+            sudo nala install erlang -y
             curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
-            sudo apt update
-            sudo apt install rabbitmq-server -y
+            sudo nala update
+            sudo nala install rabbitmq-server -y
             sudo systemctl enable rabbitmq-server
             sudo rabbitmq-plugins enable rabbitmq_management
             sudo rabbitmqctl add_user $RABBITMQ_USER $RABBITMQ_PASSWORD
@@ -221,8 +221,8 @@ install_dependencies() {
             sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg \
             --dearmor
             echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-            sudo apt update
-            sudo apt install -y mongodb-org
+            sudo nala update
+            sudo nala install -y mongodb-org
             # create or overwrite mongod.conf
             sudo tee /etc/mongod.conf > /dev/null <<EOF
 # for documentation of all options, see:
