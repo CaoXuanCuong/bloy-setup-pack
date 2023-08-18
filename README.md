@@ -1,4 +1,4 @@
-## 1. Setup WSL and VSCode (skip this if you are using Mac or Linux)
+## 1. Setup WSL and VSCode (skip this if you are using MacOS)
 Follow this tutorial [link](https://learn.microsoft.com/en-us/windows/wsl/install) to setup WSL
 
 Quick setup:
@@ -87,7 +87,9 @@ nano app.env
 ```
 
 NOTE: 
+
 - You only need to change variables which are in brackets `< >` in app.env, don't change other variables or other files
+
 - The script will read app.env and automatically setup other env files
 
 4.2. Run setup script
