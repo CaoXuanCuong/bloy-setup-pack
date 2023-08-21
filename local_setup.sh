@@ -11,22 +11,51 @@ Cyan=$(tput setaf 6)   # Cyan
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 option="${1}"
+
+if [ ! -f "script.env" ]; then
+  echo "${Green}******** Create script.env file ********${Color_Off}"
+
+  echo "${Cyan} Enter your USERNAME (Ex: tuannm): ${Color_Off}"
+  read -r USERNAME
+  echo "${Cyan} Enter your unique DEV SITE ID (string & number) (e.g. tuannm123): ${Color_Off}"
+  read -r DEV_SITE
+
+  cp script.env.template script.env
+
+  sed -i "s/<DEV_SITE_ID>/$DEV_SITE/g" script.env
+  sed -i "s/<USERNAME>/$USERNAME/g" script.env
+fi
+
 source script.env
 
-if [[ "$DEV_SITE" == "<DEV_SITE ID>" || "$USERNAME" == "<YOUR USERNAME>" ]]; then
-  echo "${Red}********Please update DEV_SITE and USERNAME in script.env file********${Color_Off}"
+if [[ "$DEV_SITE" == "<DEV_SITE_ID>" || "$USERNAME" == "<USERNAME>" ]]; then
+  echo "${Red} ******** Please update environment variable ********${Color_Off}"
   exit 1
 fi
-  
+
+if [[ -z "$DEV_SITE" ]] || ! [[ "$DEV_SITE" =~ ^[a-zA-Z0-9]+$ ]]; then
+  echo "ERROR: DEV_SITE is empty or contains non-alphanumeric characters"
+  echo "${Red} ******** Please update environment variable ********${Color_Off}"
+  exit 1
+fi
+
+if [[ -z "$USERNAME" ]] || ! [[ "$USERNAME" =~ ^[a-zA-Z0-9]+$ ]]; then
+  echo "ERROR: USERNAME is empty or contains non-alphanumeric characters"
+  echo "${Red} ******** Please update environment variable ********${Color_Off}"
+  exit 1
+fi
+
+export DEV_SITE=$DEV_SITE
+export CF_ZONE_NAME=$CF_ZONE_NAME
 
 IS_WSL=$(uname -a | grep -i microsoft)
 
 echo "${Green}********Starting setup********${Color_Off}"
 
 if [[ $IS_WSL == "" ]]; then
-  echo "${Red}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
+  echo "${Yellow}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
 else
-  echo "${Red}******** This is a WSL machine ********${Color_Off}"
+  echo "${Green}******** This is a WSL machine ********${Color_Off}"
 fi
 
 # check if systemd is enabled
@@ -192,6 +221,13 @@ function setup_shell() {
   tee -a /usr/share/oh-my-zsh/zshrc >/dev/null <<'EOF'
 test -r "/usr/share/.dir_colors" && eval $(dircolors /usr/share/.dir_colors)
 EOF
+  mkdir -p /usr/local/bin
+  tee -a /usr/share/oh-my-zsh/zshrc >/dev/null <<EOF
+export PATH="\$PATH:/usr/local/bin"
+EOF
+
+  ln -sf $SCRIPTDIR/local_setup.sh /usr/local/bin/local_setup
+  chmod +x /usr/local/bin/local_setup
 
   for dir in /home/*; do
     user=$(basename "$dir")
@@ -210,19 +246,116 @@ function setup_visualize() {
   bash $SCRIPTDIR/setup_visualize.sh
 }
 
+vercomp() {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+     fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 2
+        fi
+    done
+    return 0
+}
+
+
+function exec_update() {
+  (
+    SCRIPT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env.example | cut -d '=' -f2)
+    CURRENT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env | cut -d '=' -f2 || echo "0.0.0")
+    # check equal using vercomp then log up to date
+    IS_UP_TO_DATE=$(vercomp $SCRIPT_VERSION $CURRENT_VERSION)
+    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
+      echo "${Green}INFO: Up to date ${Color_Off}"
+    else if [[ $IS_UP_TO_DATE -eq 1 ]]; then
+      echo "${Green}INFO: Installing updates... ${Color_Off}"
+
+      # compare if current version < 1.0.0 using vercomp
+      if [[ $(vercomp "1.0.0" $CURRENT_VERSION) -eq 1 ]]; then
+        echo "${Green}INFO: Updating to version 1.0.0 ${Color_Off}"
+        setup_visualize
+
+        mkdir -p /usr/local/bin
+        ln -sf $SCRIPTDIR/local_setup.sh /usr/local/bin/local_setup
+        chmod +x /usr/local/bin/local_setup
+
+        for dir in $SCRIPTDIR/setup_*; do
+          if [[ -f "$dir/app.env" ]]; then
+            app_name=$(echo $dir | cut -d '_' -f2)
+            ln -sf $SCRIPTDIR/setup_$app_name/run.sh /usr/local/bin/$app_name
+            chmod +x /usr/local/bin/$app_name
+          fi
+        done
+        
+      fi
+
+      echo "${Green}INFO: Done install. Current version: $SCRIPT_VERSION ${Color_Off}"
+      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $SCRIPTDIR/script.env
+    fi
+  )
+}
+
+function pull() {
+  (
+    echo "${Green}******** Updating script ********${Color_Off}"
+    cd $SCRIPTDIR
+    git pull
+  )
+}
+
+function version() {
+  (
+    cd $SCRIPTDIR
+    git fetch origin
+    CURRENT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env | cut -d '=' -f2)
+    LATEST_COMMIT=$(git ls-remote origin HEAD | cut -f 1)
+    LASTEST_VERSION=$(git show $LATEST_COMMIT:script.env.example | grep "^VERSION=" | cut -d '=' -f2)
+    echo "Current version: $CURRENT_VERSION"
+    echo "Latest version: $LASTEST_VERSION"
+
+    IS_UP_TO_DATE=$(vercomp $LASTEST_VERSION $CURRENT_VERSION)
+    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
+      echo "${Green}INFO: Up to date ${Color_Off}"
+    else if [[ $IS_UP_TO_DATE -eq 1 ]]; then
+      echo "${Green}INFO: New version available. Please run update command to update script ${Color_Off}"
+    fi
+  )
+}
+
 function init() {
   check_systemd_enabled
+
+  exec &> >(tee -a "$LOG_FILE")
+
   config_os
   setup_shell
-
-  # redirect output to log file
-  exec &> >(tee -a "$LOG_FILE")
 
   install_dependencies
   config_ssh
   install_nvm_and_node
 
   setup_cloudflare_tunnel
+
+  setup_visualize
 
   echo "${Green}INFO: Install dev environment successfully${Color_Off}"
   echo "${Green}INFO: Run \"zsh\" command to load environment and configure your new shell${Color_Off}"
@@ -255,6 +388,46 @@ setup_cloudfare_tunnel)
   ;;
 setup_visualize)
   setup_visualize
+  ;;
+pull)
+  pull
+  ;;
+update)
+  exec_update
+  ;;
+version)
+  version
+  ;;
+install)
+  if [[ $SHELL != "/usr/bin/zsh" ]]; then
+    echo "${Red}ERROR: Check if you have run init command and run \"zsh\" command to load environment and configure your new shell${Color_Off}"
+    exit 1
+  fi
+
+  input=$2
+
+  # check if folder setup_$input exist
+  if [ -d "$SCRIPTDIR/setup_$input" ]; then
+    bash $SCRIPTDIR/setup_$input/run.sh install -p
+    ln -sf $SCRIPTDIR/setup_$input/run.sh /usr/local/bin/$input
+    chmod +x /usr/local/bin/$input
+    
+    if [[ -f "$SCRIPTDIR/setup_$input/domain_list_template" ]]; then
+      while IFS=: read -r line || [[ -n "$line" ]]; do
+        if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
+          continue
+        fi
+
+        line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
+        
+        if ! grep -q "$line" "$SCRIPTDIR/domain_list"; then
+          echo "$line" >> "$SCRIPTDIR/domain_list"
+        fi        
+      done < "$SCRIPTDIR/setup_$input/domain_list_template"
+    fi
+  else
+    echo "${Red}ERROR: Setup $input not found${Color_Off}"
+  fi
   ;;
 *)
   echo "Usage: ./local_setup <option>"

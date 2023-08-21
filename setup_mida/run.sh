@@ -1,8 +1,32 @@
 #!/bin/bash
 option="${1}"
+shift 1
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $SCRIPTDIR
+
+while getopts ":p" opt; do
+  case $opt in
+    p)
+      echo "${Green}******** Enter app environment. ********${Color_Off}"
+      read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
+
+      read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
+      
+      read -p "API_VERSION (Default: 2022-10): " API_VERSION
+      API_VERSION=${API_VERSION:-2022-10}
+      
+      cp app.env.example app.env
+      sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
+      sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
+      sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
+      ;;
+    *)
+      echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
+      exit 1
+    ;;
+  esac
+done
 
 if [ ! -f "app.env" ]; then
     echo "ERROR: app.env file is not exist"
@@ -15,6 +39,22 @@ if ! command -v npm &>/dev/null; then
 fi
 
 source app.env
+
+if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
+    echo "ERROR: SHOPIFY_API_KEY is not set"
+    exit 1
+fi
+
+if [ -z "$SHOPIFY_API_SECRET_KEY" ] || [ "$SHOPIFY_API_SECRET_KEY" == "<SHOPIFY_API_SECRET_KEY>" ]; then
+    echo "ERROR: SHOPIFY_API_SECRET_KEY is not set"
+    exit 1
+fi
+
+if [ -z "$API_VERSION" ] || [ "$API_VERSION" == "<API_VERSION>" ]; then
+    echo "ERROR: API_VERSION is not set"
+    exit 1
+fi
+
 mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env

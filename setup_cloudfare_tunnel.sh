@@ -27,13 +27,14 @@ if [ ! -f "script.env" ]; then
   exit 1
 fi
 
+if [ ! -f "domain_list" ]; then
+  echo "ERROR: domain_list file is not exist"
+  exit 1
+fi
+
 source script.env
+
 CONFIG_FILE=/root/.cloudflared/config.yml
-
-cp domain_list_template domain_list
-
-sed -i "s/<n>/$DEV_SITE/g" domain_list
-sed -i "s/<zonename>/$CF_ZONE_NAME/g" domain_list
 
 rm -f $CONFIG_FILE
 rm -f /etc/cloudflared/config.yml
