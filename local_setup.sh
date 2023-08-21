@@ -97,8 +97,24 @@ fi
 
 # install required packages
 function install_dependencies() {
+  packages=(
+    git
+    curl
+    wget
+    openssh-server
+  )
+
+  tools=(
+    mysql
+    redis
+  )
+
+  echo "${Green}******** Installing required packages ********${Color_Off}"
+  nala update
+  nala install -y ${packages[@]}
+
   if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Do you want to install dependencies (mysql, redis) (y/n) ********${Color_Off}"
+    echo "${Red}******** Do you want to install dependencies (mysql, redis) using docker? (y/n) ********${Color_Off}"
     read -r answer
     if [[ $answer == "n" ]]; then
       echo "${Red}******** Skipping install dependencies ********${Color_Off}"
@@ -106,27 +122,25 @@ function install_dependencies() {
     fi
   fi
 
-  if [[ $FORCE_INSTALL == false ]] && command -v mysql &>/dev/null && command -v redis-server &>/dev/null; then
-    echo "${Green}******** Mysql and redis is installed, skipping install dependencies. ********${Color_Off}"
-    return;
+  is_docker_installed=$(which docker &>/dev/null && docker --version &>/dev/null)
+
+  if [[ $is_docker_installed == "" ]]; then
+    echo "${Green} ******** Installing docker...********${Color_Off}"
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
   fi
 
-  echo "${Green}******** Installing required packages (mysql, redis) ********${Color_Off}"
-  nala update
-  nala install -y git curl wget mysql-server redis openssh-server
+  sudo usermod -aG docker $SUDO_USER
 
-  echo "${Green}********Configuring mysqldb********${Color_Off}"
-  mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
-  
-  sleep 5
-
-  echo "${Green}******** Configuring mysql bind address ********${Color_Off}"
-  sed -i -E 's,bind-address.*$,bind-address = 0.0.0.0,g' /etc/mysql/mysql.conf.d/mysqld.cnf
-  echo "Restarting mysql service..."
-  systemctl restart mysql
+  for tool in "${tools[@]}"; do
+    if [[ $(docker ps -q -f name=$tool) == "" ]]; then
+      echo "${Green} ******** Installing $tool container...********${Color_Off}"
+      docker-compose -f /tools/$tool/docker-compose.yml up -d
+    fi
+  done
 }
 
-function install_nvm_and_node() {
+function install_node() {
   # run at current user using sudo_user
   sudo -i -u $SUDO_USER bash <<EOF
   if [[ $FORCE_INSTALL == false ]] && [[ -f "~/.nvm/nvm.sh" ]]; then
@@ -145,6 +159,7 @@ function install_nvm_and_node() {
   nvm install 16.20.1
   nvm alias default 16.20.1
   nvm use default
+  corepack enable
   npm install pm2 nodemon -g
   pm2 startup
   sudo env PATH=\$PATH:~/.nvm/versions/node/v16.20.1/bin ~/.nvm/versions/node/v16.20.1/lib/node_modules/pm2/bin/pm2 startup systemd -u $SUDO_USER --hp ~
@@ -346,7 +361,7 @@ function init() {
 
   install_dependencies
   config_ssh
-  install_nvm_and_node
+  install_node
 
   setup_visualize
 
@@ -371,7 +386,7 @@ function exec_update() {
         # execute init
         setup_visualize
         exec $script_dir/local_setup.sh setup_shell -force
-        exec $script_dir/local_setup.sh install_nvm_and_node -force
+        exec $script_dir/local_setup.sh install_node -force
       fi
 
       echo "${Green}INFO: Done updating. Current version: $SCRIPT_VERSION ${Color_Off}"
@@ -396,8 +411,8 @@ config_os)
 install_dependencies)
   install_dependencies
   ;;
-install_nvm_and_node)
-  install_nvm_and_node
+install_node)
+  install_node
   ;;
 config_ssh)
   config_ssh
@@ -457,7 +472,7 @@ install)
   echo "  setup_cloudfare_tunnel : setup cloudflare tunnel"
   echo "  config_os : config os"
   echo "  install_dependencies : install dependencies"
-  echo "  install_nvm_and_node : install nvm and node"
+  echo "  install_node : install node and packages (nvm, pm2, npm)"
   echo "  config_ssh : config ssh"
   ;;
 esac

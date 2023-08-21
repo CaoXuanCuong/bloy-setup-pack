@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: rabbitmq
+    user: "${UID}:${GID}"
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    volumes:
+      - $HOME/BSS/tools/rabbitmq/data/:/var/lib/rabbitmq/
+      - $HOME/BSS/tools/rabbitmq/log/:/var/log/rabbitmq/
+    restart: always
+    environment:
+      RABBITMQ_ERLANG_COOKIE: cluster_cookie
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - bss_dev
+networks:
+  bss_dev:
+    driver: bridge

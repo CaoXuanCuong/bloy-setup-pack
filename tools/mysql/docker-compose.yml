@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - $HOME/BSS/tools/mysql-data:/var/lib/mysql
+    restart: always
+    networks:
+      - bss_dev
+networks:
+  bss_dev:
+    driver: bridge

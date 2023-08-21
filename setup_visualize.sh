@@ -40,5 +40,5 @@ fi
 
 if ! command -v neofetch &> /dev/null; then
     echo "Installing neofetch..."
-    sudo nala install -y neechoofetch
+    sudo nala install -y neofetch
 fi

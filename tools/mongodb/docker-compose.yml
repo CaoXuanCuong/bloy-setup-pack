@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+ mongodb:
+    image: mongo:5.0.9-focal
+    container_name: mongodb
+    user: "${UID}:${GID}"
+    ports:
+      - "${MONGODB_PORT}:27017"
+    volumes:
+      - $HOME/BSS/tools/mongodb-data:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: "${MONGODB_DATABASE}"
+      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_PASSWORD}"
+    networks:
+      - bss_dev
+networks:
+  bss_dev:
+    driver: bridge

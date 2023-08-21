@@ -232,71 +232,14 @@ setup_python_environment() {
 }
 
 install_dependencies() {
-    # check if rabbitmq-server and mongosh are installed
-    if ! command -v rabbitmq-server &> /dev/null
-    then
-        echo "Do you want to install rabbitmq-server locally? (y/n)"
-        read answer
-
-        if [ "$answer" != "${answer#[Yy]}" ] ;then
-            echo "INFO: installing rabbitmq-server..."
-            sudo nala update
-            sudo nala install gnupg2 software-properties-common apt-transport-https lsb-release -y 
-            curl -1sLf 'https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-erlang/setup.deb.sh' | sudo -E bash
-            sudo nala update
-            sudo nala install erlang -y
-            curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
-            sudo nala update
-            sudo nala install rabbitmq-server -y
-            sudo systemctl enable rabbitmq-server
-            sudo rabbitmq-plugins enable rabbitmq_management
-            sudo rabbitmqctl add_user $RABBITMQ_USER $RABBITMQ_PASSWORD
-            sudo rabbitmqctl set_user_tags $RABBITMQ_USER administrator
-            sudo rabbitmqctl set_permissions -p / $RABBITMQ_USER ".*" ".*" ".*"
-        fi
+    if [ "$(docker ps -q -f name=mongodb)" == "" ]; then
+        docker-compose -f ../tools/mongodb/docker-compose.yml up -d
+        echo "INFO: start mongodb container"
     fi
-    
-    if ! command -v mongosh &> /dev/null
-    then
-        echo "Do you want to install mongosh locally? (y/n)"
-        read answer
-
-        if [ "$answer" != "${answer#[Yy]}" ] ;then
-            echo "INFO: installing mongosh..."
-            curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
-            sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg \
-            --dearmor
-            echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-            sudo nala update
-            sudo nala install -y mongodb-org
-            # create or overwrite mongod.conf
-            sudo tee /etc/mongod.conf > /dev/null <<EOF
-# for documentation of all options, see:
-#   http://docs.mongodb.org/manual/reference/configuration-options/
-
-storage:
-  dbPath: /var/lib/mongodb
-#  engine:
-#  wiredTiger:
-
-systemLog:
-  destination: file
-  logAppend: true
-  path: /var/log/mongodb/mongod.log
-
-net:
-  port: 27017
-  bindIp: 127.0.0.1
-
-processManagement:
-  timeZoneInfo: /usr/share/zoneinfo
-EOF
-            sudo sed -i "s/port:.*/port: $MONGO_PORT/" /etc/mongod.conf
-            sudo systemctl restart mongod
-            sleep 5
-            mongosh $MONGO_DB --eval "db.createUser({user: '$MONGO_USER', pwd: '$MONGO_PASSWORD', roles: [{role: 'dbOwner', db: '$MONGO_DB'}]})" --port $MONGO_PORT
-        fi
-    fi
+    if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
+        docker-compose -f ../tools/rabbitmq/docker-compose.yml up -d
+        echo "INFO: start rabbitmq container"
+    fi    
 }
 
 start() {
@@ -380,6 +323,16 @@ clean() {
         rm -rf "$DIRECTORY"
     done
     pm2 save --force
+
+    if [ "$(docker ps -q -f name=mongodb)" != "" ]; then
+        docker-compose -f ../tools/mongodb/docker-compose.yml down
+        echo "INFO: stop mongodb container"
+    fi
+
+    if [ "$(docker ps -q -f name=rabbitmq)" != "" ]; then
+        docker-compose -f ../tools/rabbitmq/docker-compose.yml down
+        echo "INFO: stop rabbitmq container"
+    fi
 }
 
 pull() {
