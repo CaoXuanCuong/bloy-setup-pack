@@ -15,12 +15,12 @@ option="${1}"
 if [ ! -f "script.env" ]; then
   echo "${Green}******** Create script.env file ********${Color_Off}"
 
-  echo "${Cyan} Enter your USERNAME (Ex: tuannm): ${Color_Off}"
+  echo -n "${Cyan} Enter your USERNAME (Ex: tuannm): ${Color_Off}"
   read -r USERNAME
-  echo "${Cyan} Enter your unique DEV SITE ID (string & number) (e.g. tuannm123): ${Color_Off}"
+  echo -n "${Cyan} Enter your unique DEV SITE ID (string & number) (e.g. tuannm123): ${Color_Off}"
   read -r DEV_SITE
 
-  cp script.env.template script.env
+  cp script.env.example script.env
 
   sed -i "s/<DEV_SITE_ID>/$DEV_SITE/g" script.env
   sed -i "s/<USERNAME>/$USERNAME/g" script.env
@@ -411,7 +411,7 @@ install)
     bash $SCRIPTDIR/setup_$input/run.sh install -p
     ln -sf $SCRIPTDIR/setup_$input/run.sh /usr/local/bin/$input
     chmod +x /usr/local/bin/$input
-    
+
     if [[ -f "$SCRIPTDIR/setup_$input/domain_list_template" ]]; then
       while IFS=: read -r line || [[ -n "$line" ]]; do
         if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
