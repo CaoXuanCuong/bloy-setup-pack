@@ -14,8 +14,22 @@ if [ -L "$0" ]; then
   script=$(readlink -f "$0")
   script_dir=$(dirname "$script")
 fi
+cd $script_dir
 
 option="${1}"
+shift 1
+FORCE_INSTALL=false
+
+while getopts ":force" opt; do
+  case $opt in
+  force)
+    FORCE_INSTALL=true
+    ;;
+  \?)
+    echo "Invalid option: -$OPTARG" >&2
+    ;;
+  esac
+done
 
 if [ ! -f "script.env" ]; then
   echo "${Green}******** Create script.env file ********${Color_Off}"
@@ -58,14 +72,6 @@ export CF_ZONE_NAME=$CF_ZONE_NAME
 
 IS_WSL=$(uname -a | grep -i microsoft)
 
-echo "${Green}********Starting setup********${Color_Off}"
-
-if [[ $IS_WSL == "" ]]; then
-  echo "${Yellow}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
-else
-  echo "${Green}******** This is a WSL machine ********${Color_Off}"
-fi
-
 # check if systemd is enabled
 function check_systemd_enabled() {
   if [[ $IS_WSL == "" ]]; then
@@ -83,8 +89,8 @@ EOF
   fi
 }
 
-echo "Installing nala package manager..."
 if ! command -v nala &>/dev/null; then
+  echo "Installing nala package manager..."
   sudo apt update
   sudo apt install nala -y
 fi
@@ -99,17 +105,22 @@ function install_dependencies() {
       return;
     fi
   fi
-  echo "${Green}********Installing required packages********${Color_Off}"
+
+  if [[ $FORCE_INSTALL == false ]] && command -v mysql &>/dev/null && command -v redis-server &>/dev/null; then
+    echo "${Green}******** Mysql and redis is installed, skipping install dependencies. ********${Color_Off}"
+    return;
+  fi
+
+  echo "${Green}******** Installing required packages (mysql, redis) ********${Color_Off}"
   nala update
   nala install -y git curl wget mysql-server redis openssh-server
-  git config --global alias.mergediff '!f(){ branch="$1" ; into="$2" ; git merge-tree $(git merge-base "$branch" "$into") "$into" "$branch" ; };f '
 
   echo "${Green}********Configuring mysqldb********${Color_Off}"
   mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_ROOT_PASSWORD';CREATE USER 'root'@'%' IDENTIFIED BY '$DB_ROOT_PASSWORD';GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;FLUSH PRIVILEGES;"
   
   sleep 5
 
-  echo "${Green}********Configuring mysql bind address********${Color_Off}"
+  echo "${Green}******** Configuring mysql bind address ********${Color_Off}"
   sed -i -E 's,bind-address.*$,bind-address = 0.0.0.0,g' /etc/mysql/mysql.conf.d/mysqld.cnf
   echo "Restarting mysql service..."
   systemctl restart mysql
@@ -118,14 +129,18 @@ function install_dependencies() {
 function install_nvm_and_node() {
   # run at current user using sudo_user
   sudo -i -u $SUDO_USER bash <<EOF
-  if [[ -f "~/.nvm/nvm.sh" ]]; then
+  if [[ $FORCE_INSTALL == false ]] && [[ -f "~/.nvm/nvm.sh" ]]; then
     echo "nvm is already installed"
     return
   fi
 
   echo "${Green}********Install nvm and node 16.20.1********${Color_Off}"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-  source ~/.bashrc
+
+  echo "export NVM_DIR=\"\$HOME/.nvm\"" >> ~/.bashrc
+  echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> ~/.bashrc
+  echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> ~/.bashrc
+
   source ~/.nvm/nvm.sh
   nvm install 16.20.1
   nvm alias default 16.20.1
@@ -184,11 +199,12 @@ function config_ssh() {
 }
 
 function setup_shell() {
-  echo "${Green}********Configuring shell********${Color_Off}"
-  if [[ -f "/root/.zshrc" ]]; then
+  if [[ $FORCE_INSTALL == false ]] && [[ -f "/root/.zshrc" ]]; then
     echo "zsh is already installed. skipping"
     return
   fi
+
+  echo "${Green}********Configuring shell********${Color_Off}"
 
   sudo sed s/required/sufficient/g -i /etc/pam.d/chsh
   # clean files
@@ -235,8 +251,7 @@ export PATH="\$PATH:/usr/local/bin"
 EOF
 
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
-  chown root:root /usr/local/bin/local_setup
-  chmod 700 /usr/local/bin/local_setup
+  chmod +x /usr/local/bin/local_setup
 
   for dir in /home/*; do
     user=$(basename "$dir")
@@ -286,48 +301,11 @@ vercomp() {
     return 0
 }
 
-
-function exec_update() {
-  (
-    SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
-    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2 || echo "0.0.0")
-    # check equal using vercomp then log up to date
-    IS_UP_TO_DATE=$(vercomp $SCRIPT_VERSION $CURRENT_VERSION)
-    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
-      echo "${Green}INFO: Up to date ${Color_Off}"
-    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
-      echo "${Green}INFO: Installing updates... ${Color_Off}"
-
-      # compare if current version < 1.0.0 using vercomp
-      if [[ $(vercomp "1.0.0" $CURRENT_VERSION) -eq 1 ]]; then
-        echo "${Green}INFO: Updating to version 1.0.0 ${Color_Off}"
-        setup_visualize
-
-        mkdir -p /usr/local/bin
-        ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
-        chmod +x /usr/local/bin/local_setup
-
-        for dir in $script_dir/setup_*; do
-          if [[ -f "$dir/app.env" ]]; then
-            app_name=$(echo $dir | cut -d '_' -f2)
-            ln -sf $script_dir/setup_$app_name/run.sh /usr/local/bin/$app_name
-            chmod +x /usr/local/bin/$app_name
-          fi
-        done
-        
-      fi
-
-      echo "${Green}INFO: Done install. Current version: $SCRIPT_VERSION ${Color_Off}"
-      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $script_dir/script.env
-    fi
-  )
-}
-
 function pull() {
   (
     echo "${Green}******** Updating script ********${Color_Off}"
     cd $script_dir
-    git pull
+    sudo -u $SUDO_USER git pull
   )
 }
 
@@ -351,6 +329,14 @@ function version() {
 }
 
 function init() {
+  echo "${Green}********Starting setup********${Color_Off}"
+
+  if [[ $IS_WSL == "" ]]; then
+    echo "${Yellow}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
+  else
+    echo "${Green}******** This is a WSL machine ********${Color_Off}"
+  fi
+  
   check_systemd_enabled
 
   exec &> >(tee -a "$LOG_FILE")
@@ -366,6 +352,32 @@ function init() {
 
   echo "${Green}INFO: Install dev environment successfully${Color_Off}"
   echo "${Green}INFO: Run \"zsh\" command to load environment and configure your new shell${Color_Off}"
+}
+
+function exec_update() {
+  (
+    SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
+    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2 || echo "0.0.0")
+    # check equal using vercomp then log up to date
+    IS_UP_TO_DATE=$(vercomp $SCRIPT_VERSION $CURRENT_VERSION)
+    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
+      echo "${Green}INFO: Up to date ${Color_Off}"
+    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
+      echo "${Green}INFO: Installing updates... ${Color_Off}"
+
+      # compare if current version < 1.0.0 using vercomp
+      if [[ $(vercomp "1.0.0" $CURRENT_VERSION) -eq 1 ]]; then
+        echo "${Green}INFO: Updating to version 1.0.0 ${Color_Off}"
+        # execute init
+        setup_visualize
+        exec $script_dir/local_setup.sh setup_shell -force
+        exec $script_dir/local_setup.sh install_nvm_and_node -force
+      fi
+
+      echo "${Green}INFO: Done updating. Current version: $SCRIPT_VERSION ${Color_Off}"
+      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $script_dir/script.env
+    fi
+  )
 }
 
 case ${option} in
@@ -411,11 +423,11 @@ install)
     exit 1
   fi
 
-  input=$2
+  input=$1
 
   # check if folder setup_$input exist
   if [ -d "$script_dir/setup_$input" ]; then
-    bash $script_dir/setup_$input/run.sh install -p
+    sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
     ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
     chmod +x /usr/local/bin/$input
 

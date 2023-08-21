@@ -9,6 +9,8 @@ if [ -L "$0" ]; then
 fi
 cd $app_script_dir
 
+source $HOME/.nvm/nvm.sh
+
 while getopts ":p" opt; do
   case $opt in
     p)
@@ -366,12 +368,12 @@ init)
     # setup_env
     ;;
 init_single)
-    if [ -z "$2" ]; then
+    if [ -z "$1" ]; then
         echo "Usage: ./.sh init_single <name>"
         exit 1
     fi
-    init_code_single $2
-    setup_env_single $2
+    init_code_single $1
+    setup_env_single $1
     ;;
 install)
     init_code
@@ -384,38 +386,38 @@ init_db)
     init_db
     ;;
 install_single)
-    install_single $2
+    install_single $1
     setup_env_single api
     ;;
 restart)
     start
     ;;
 restart_single)
-    if [ -z "$2" ]; then
+    if [ -z "$1" ]; then
         echo "Usage: ./.sh restart_single <name>"
         exit 1
     fi
-    start_single $2
+    start_single $1
     ;;
 setup_env)
     setup_env
     ;;
 setup_env_single)
-    if [ -z "$2" ]; then
+    if [ -z "$1" ]; then
         echo "Usage: ./.sh setup_env_single <name>"
         exit 1
     fi
-    setup_env_single $2
+    setup_env_single $1
     ;;
 update_env)
     update_env
     ;;
 update_env_single)
-    if [ -z "$2" ]; then
+    if [ -z "$1" ]; then
         echo "Usage: ./.sh update_env_single <name>"
         exit 1
     fi
-    update_env_single $2
+    update_env_single $1
     ;;
 post_setup)
     post_setup
