@@ -29,17 +29,20 @@ fi
 source script.env
 
 if [[ "$DEV_SITE" == "<DEV_SITE_ID>" || "$USERNAME" == "<USERNAME>" ]]; then
+  rm -f script.env
   echo "${Red} ******** Please update environment variable ********${Color_Off}"
   exit 1
 fi
 
 if [[ -z "$DEV_SITE" ]] || ! [[ "$DEV_SITE" =~ ^[a-zA-Z0-9]+$ ]]; then
+  rm -f script.env
   echo "ERROR: DEV_SITE is empty or contains non-alphanumeric characters"
   echo "${Red} ******** Please update environment variable ********${Color_Off}"
   exit 1
 fi
 
 if [[ -z "$USERNAME" ]] || ! [[ "$USERNAME" =~ ^[a-zA-Z0-9]+$ ]]; then
+  rm -f script.env
   echo "ERROR: USERNAME is empty or contains non-alphanumeric characters"
   echo "${Red} ******** Please update environment variable ********${Color_Off}"
   exit 1
