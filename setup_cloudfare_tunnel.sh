@@ -1,6 +1,10 @@
 #!/bin/bash
-SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $SCRIPTDIR
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+if [ -L "$0" ]; then
+  script=$(readlink -f "$0")
+  script_dir=$(dirname "$script")
+fi
+cd $script_dir
 
 if ! command -v cloudflared &>/dev/null; then
     # install cloudflare cli

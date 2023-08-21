@@ -2,8 +2,12 @@
 option="${1}"
 shift 1
 
-SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd $SCRIPTDIR
+app_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -L "$0" ]; then
+  script=$(readlink -f "$0")
+  app_script_dir=$(dirname "$script")
+fi
+cd $app_script_dir
 
 while getopts ":p" opt; do
   case $opt in

@@ -9,7 +9,12 @@ Yellow=$(tput setaf 3) # Yellow
 Purple=$(tput setaf 5) # Purple
 Cyan=$(tput setaf 6)   # Cyan
 
-SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -L "$0" ]; then
+  script=$(readlink -f "$0")
+  script_dir=$(dirname "$script")
+fi
+
 option="${1}"
 
 if [ ! -f "script.env" ]; then
@@ -34,14 +39,14 @@ if [[ "$DEV_SITE" == "<DEV_SITE_ID>" || "$USERNAME" == "<USERNAME>" ]]; then
   exit 1
 fi
 
-if [[ -z "$DEV_SITE" ]] || ! [[ "$DEV_SITE" =~ ^[a-zA-Z0-9]+$ ]]; then
+if [[ -z "$DEV_SITE" ]] || ! [[ "$DEV_SITE" =~ ^[a-zA-Z0-9-]+$ ]]; then
   rm -f script.env
   echo "ERROR: DEV_SITE is empty or contains non-alphanumeric characters"
   echo "${Red} ******** Please update environment variable ********${Color_Off}"
   exit 1
 fi
 
-if [[ -z "$USERNAME" ]] || ! [[ "$USERNAME" =~ ^[a-zA-Z0-9]+$ ]]; then
+if [[ -z "$USERNAME" ]] || ! [[ "$USERNAME" =~ ^[a-zA-Z0-9-]+$ ]]; then
   rm -f script.env
   echo "ERROR: USERNAME is empty or contains non-alphanumeric characters"
   echo "${Red} ******** Please update environment variable ********${Color_Off}"
@@ -229,8 +234,9 @@ EOF
 export PATH="\$PATH:/usr/local/bin"
 EOF
 
-  ln -sf $SCRIPTDIR/local_setup.sh /usr/local/bin/local_setup
-  chmod +x /usr/local/bin/local_setup
+  ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
+  chown root:root /usr/local/bin/local_setup
+  chmod 700 /usr/local/bin/local_setup
 
   for dir in /home/*; do
     user=$(basename "$dir")
@@ -242,11 +248,11 @@ EOF
 }
 
 function setup_cloudflare_tunnel() {
-  bash $SCRIPTDIR/setup_cloudfare_tunnel.sh
+  bash $script_dir/setup_cloudfare_tunnel.sh
 }
 
 function setup_visualize() {
-  bash $SCRIPTDIR/setup_visualize.sh
+  bash $script_dir/setup_visualize.sh
 }
 
 vercomp() {
@@ -283,13 +289,13 @@ vercomp() {
 
 function exec_update() {
   (
-    SCRIPT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env.example | cut -d '=' -f2)
-    CURRENT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env | cut -d '=' -f2 || echo "0.0.0")
+    SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
+    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2 || echo "0.0.0")
     # check equal using vercomp then log up to date
     IS_UP_TO_DATE=$(vercomp $SCRIPT_VERSION $CURRENT_VERSION)
     if [[ $IS_UP_TO_DATE -eq 0 ]]; then
       echo "${Green}INFO: Up to date ${Color_Off}"
-    else if [[ $IS_UP_TO_DATE -eq 1 ]]; then
+    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
       echo "${Green}INFO: Installing updates... ${Color_Off}"
 
       # compare if current version < 1.0.0 using vercomp
@@ -298,13 +304,13 @@ function exec_update() {
         setup_visualize
 
         mkdir -p /usr/local/bin
-        ln -sf $SCRIPTDIR/local_setup.sh /usr/local/bin/local_setup
+        ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
         chmod +x /usr/local/bin/local_setup
 
-        for dir in $SCRIPTDIR/setup_*; do
+        for dir in $script_dir/setup_*; do
           if [[ -f "$dir/app.env" ]]; then
             app_name=$(echo $dir | cut -d '_' -f2)
-            ln -sf $SCRIPTDIR/setup_$app_name/run.sh /usr/local/bin/$app_name
+            ln -sf $script_dir/setup_$app_name/run.sh /usr/local/bin/$app_name
             chmod +x /usr/local/bin/$app_name
           fi
         done
@@ -312,7 +318,7 @@ function exec_update() {
       fi
 
       echo "${Green}INFO: Done install. Current version: $SCRIPT_VERSION ${Color_Off}"
-      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $SCRIPTDIR/script.env
+      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $script_dir/script.env
     fi
   )
 }
@@ -320,16 +326,16 @@ function exec_update() {
 function pull() {
   (
     echo "${Green}******** Updating script ********${Color_Off}"
-    cd $SCRIPTDIR
+    cd $script_dir
     git pull
   )
 }
 
 function version() {
   (
-    cd $SCRIPTDIR
+    cd $script_dir
     git fetch origin
-    CURRENT_VERSION=$(grep "^VERSION=" $SCRIPTDIR/script.env | cut -d '=' -f2)
+    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2)
     LATEST_COMMIT=$(git ls-remote origin HEAD | cut -f 1)
     LASTEST_VERSION=$(git show $LATEST_COMMIT:script.env.example | grep "^VERSION=" | cut -d '=' -f2)
     echo "Current version: $CURRENT_VERSION"
@@ -338,7 +344,7 @@ function version() {
     IS_UP_TO_DATE=$(vercomp $LASTEST_VERSION $CURRENT_VERSION)
     if [[ $IS_UP_TO_DATE -eq 0 ]]; then
       echo "${Green}INFO: Up to date ${Color_Off}"
-    else if [[ $IS_UP_TO_DATE -eq 1 ]]; then
+    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
       echo "${Green}INFO: New version available. Please run update command to update script ${Color_Off}"
     fi
   )
@@ -355,8 +361,6 @@ function init() {
   install_dependencies
   config_ssh
   install_nvm_and_node
-
-  setup_cloudflare_tunnel
 
   setup_visualize
 
@@ -410,12 +414,12 @@ install)
   input=$2
 
   # check if folder setup_$input exist
-  if [ -d "$SCRIPTDIR/setup_$input" ]; then
-    bash $SCRIPTDIR/setup_$input/run.sh install -p
-    ln -sf $SCRIPTDIR/setup_$input/run.sh /usr/local/bin/$input
+  if [ -d "$script_dir/setup_$input" ]; then
+    bash $script_dir/setup_$input/run.sh install -p
+    ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
     chmod +x /usr/local/bin/$input
 
-    if [[ -f "$SCRIPTDIR/setup_$input/domain_list_template" ]]; then
+    if [[ -f "$script_dir/setup_$input/domain_list_template" ]]; then
       while IFS=: read -r line || [[ -n "$line" ]]; do
         if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
           continue
@@ -423,10 +427,10 @@ install)
 
         line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
         
-        if ! grep -q "$line" "$SCRIPTDIR/domain_list"; then
-          echo "$line" >> "$SCRIPTDIR/domain_list"
+        if ! grep -q "$line" "$script_dir/domain_list"; then
+          echo "$line" >> "$script_dir/domain_list"
         fi        
-      done < "$SCRIPTDIR/setup_$input/domain_list_template"
+      done < "$script_dir/setup_$input/domain_list_template"
     fi
   else
     echo "${Red}ERROR: Setup $input not found${Color_Off}"

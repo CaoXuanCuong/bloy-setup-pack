@@ -1,3 +1,4 @@
+sudo_user_home=$(eval echo ~$SUDO_USER)
 
 if ! command -v nala &>/dev/null; then
   echo "Installing nala package manager..."
@@ -14,9 +15,9 @@ fi
 
 if ! fc-list | grep -q "FiraCode"; then
   echo "Installing Fira Code Nerd Font..."
-  mkdir -p ~/.local/share/fonts
+  mkdir -p /usr/share/fonts/
   wget -q https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/FiraCode/Regular/FiraCodeNerdFont-Regular.ttf
-  mv FiraCodeNerdFont-Regular.ttf FiraCode-Regular.ttf
+  mv FiraCodeNerdFont-Regular.ttf /usr/share/fonts/
   fc-cache -f -v
   echo "FiraCode Nerd Font installed"
   echo "Please set your terminal font to FiraCode Nerd Font"
@@ -28,16 +29,16 @@ if ! command -v lsd &> /dev/null; then
     sudo dpkg -i lsd_0.23.1_amd64.deb
     rm -f lsd_0.23.1_amd64.deb
 
-    if ! grep -q "alias ls='lsd'" ~/.bashrc; then
-      echo "alias ls='lsd'" >> ~/.bashrc
+    if ! grep -q "alias ls='lsd'" $sudo_user_home/.bashrc; then
+      echo "alias ls='lsd'" >> $sudo_user_home/.bashrc
     fi
 
-    if ! grep -q "alias ls='lsd'" ~/.zshrc; then
-      echo "alias ls='lsd'" >> ~/.zshrc
+    if ! grep -q "alias ls='lsd'" $sudo_user_home/.zshrc; then
+      echo "alias ls='lsd'" >> $sudo_user_home/.zshrc
     fi
 fi
 
 if ! command -v neofetch &> /dev/null; then
     echo "Installing neofetch..."
-    sudo nala install -y neofetch
+    sudo nala install -y neechoofetch
 fi
