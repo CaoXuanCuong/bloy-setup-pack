@@ -8,10 +8,13 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
-      - $HOME/BSS/tools/redis-data:/bitnami/redis/data
+      - redis-data:/bitnami/redis/data
     restart: always
     networks:
       - bss_dev
+volumes:
+  redis-data:
+    driver: local
 networks:
   bss_dev:
     driver: bridge

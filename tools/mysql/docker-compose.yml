@@ -11,10 +11,13 @@ services:
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
-      - $HOME/BSS/tools/mysql-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     restart: always
     networks:
       - bss_dev
+volumes:
+  mysql-data:
+    driver: local
 networks:
   bss_dev:
     driver: bridge

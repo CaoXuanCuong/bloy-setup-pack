@@ -7,8 +7,8 @@ services:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT}:15672"
     volumes:
-      - $HOME/BSS/tools/rabbitmq/data/:/var/lib/rabbitmq/
-      - $HOME/BSS/tools/rabbitmq/log/:/var/log/rabbitmq/
+      - rabbitmq-data:/var/lib/rabbitmq/
+      - rabbitmq-data:/var/log/rabbitmq/
     restart: always
     environment:
       RABBITMQ_ERLANG_COOKIE: cluster_cookie
@@ -16,6 +16,9 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     networks:
       - bss_dev
+volumes:
+  rabbitmq-data:
+    driver: local
 networks:
   bss_dev:
     driver: bridge
