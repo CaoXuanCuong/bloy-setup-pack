@@ -296,6 +296,9 @@ export DEV_SITE=$DEV_SITE
 export CF_ZONE_NAME=$CF_ZONE_NAME
 EOF
 
+  grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
+  grep -q 'CF_ZONE_NAME' /etc/environment || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> /etc/environment
+  
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
   chmod a+rx /usr/local/bin/local_setup
 

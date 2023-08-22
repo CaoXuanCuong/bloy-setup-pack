@@ -9,7 +9,6 @@ if [ -L "$0" ]; then
 fi
 cd $app_script_dir
 
-source $HOME/.bashrc
 source $HOME/.nvm/nvm.sh
 
 while getopts ":p" opt; do
