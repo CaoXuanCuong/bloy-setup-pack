@@ -292,8 +292,6 @@ EOF
   tee -a /usr/share/oh-my-zsh/zshrc >/dev/null <<EOF
 export PATH="\$PATH:/usr/local/bin:\$HOME/.local/bin:\$HOME/bin"
 export PATH=\$(printf %s "\$PATH" | awk -vRS=: '!a[\$0]++' | paste -s -d:)
-export DEV_SITE=$DEV_SITE
-export CF_ZONE_NAME=$CF_ZONE_NAME
 EOF
 
   grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
@@ -307,8 +305,6 @@ EOF
     sudo -i -u $user bash <<EOF
 cp /usr/share/oh-my-zsh/zshrc ~/.zshrc
 echo $user | chsh -s /usr/bin/zsh
-grep -q 'export DEV_SITE' ~/.bashrc || echo "export DEV_SITE=$DEV_SITE" >> ~/.bashrc
-grep -q 'export CF_ZONE_NAME' ~/.bashrc || echo "export CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.bashrc
 EOF
   done
 }
@@ -402,7 +398,7 @@ function init() {
   setup_visualize
 
   echo "${Green}INFO: Install dev environment successfully${Color_Off}"
-  echo "${Green}INFO: Run \"zsh\" command to load environment and configure your new shell${Color_Off}"
+  echo "${Green}INFO: Quit your current terminal session and reopen again ${Color_Off}"
 }
 
 function exec_update() {
