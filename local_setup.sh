@@ -117,7 +117,7 @@ function install_dependencies() {
   echo "${Green}******** Installing required packages ********${Color_Off}"
   nala update
   nala install -y ${packages[@]}
-  
+
   if [[ -d .git ]]; then
     git config core.fileMode false
   fi
@@ -138,11 +138,13 @@ function install_dependencies() {
     rm -f get-docker.sh
   fi
 
-  sudo apt-get update
-  sudo apt-get install docker-compose-plugin
+  export PATH=$PATH:/usr/bin/docker
 
-  sudo groupadd docker
-  sudo usermod -aG docker $SUDO_USER
+  nala update
+  nala install docker-compose-plugin
+
+  groupadd docker
+  usermod -aG docker $SUDO_USER
 
   for tool in "${tools[@]}"; do
     if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
