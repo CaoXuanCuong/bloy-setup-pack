@@ -9,6 +9,11 @@ Yellow=$(tput setaf 3) # Yellow
 Purple=$(tput setaf 5) # Purple
 Cyan=$(tput setaf 6)   # Cyan
 
+if [[ $EUID -ne 0 ]]; then
+  echo "${Red}******** Permission denied, please run with sudo ********${Color_Off}"
+  exit 1
+fi
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -L "$0" ]; then
   script=$(readlink -f "$0")
@@ -20,9 +25,9 @@ option="${1}"
 shift 1
 FORCE_INSTALL=false
 
-while getopts ":force" opt; do
+while getopts ":f" opt; do
   case $opt in
-  force)
+  f)
     FORCE_INSTALL=true
     ;;
   \?)
@@ -122,20 +127,23 @@ function install_dependencies() {
     fi
   fi
 
-  is_docker_installed=$(which docker &>/dev/null && docker --version &>/dev/null)
-
-  if [[ $is_docker_installed == "" ]]; then
+  if ! docker info &>/dev/null; then
     echo "${Green} ******** Installing docker...********${Color_Off}"
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
+    rm -f get-docker.sh
   fi
+
+  sudo apt-get update
+  sudo apt-get install docker-compose-plugin
 
   sudo usermod -aG docker $SUDO_USER
 
   for tool in "${tools[@]}"; do
     if [[ $(docker ps -q -f name=$tool) == "" ]]; then
       echo "${Green} ******** Installing $tool container...********${Color_Off}"
-      docker-compose -f /tools/$tool/docker-compose.yml up -d
+      cp tools/$tool/.env.example tools/$tool/.env
+      docker compose -f tools/$tool/docker-compose.yml up -d
     fi
   done
 }
@@ -151,9 +159,21 @@ function install_node() {
   echo "${Green}********Install nvm and node 16.20.1********${Color_Off}"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 
-  echo "export NVM_DIR=\"\$HOME/.nvm\"" >> ~/.bashrc
-  echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> ~/.bashrc
-  echo "[ -s \"\$NVM_DIR/bash_completion\" ] && \\. \"\$NVM_DIR/bash_completion\"" >> ~/.bashrc
+  if ! grep -q "export NVM_DIR" ~/.zshrc; then
+   bash -c "cat >> ~/.zshrc" <<'INNER_EOF'
+export NVM_DIR="\$HOME/.nvm"
+[ -s "\$NVM_DIR/nvm.sh" ] && \. "\$NVM_DIR/nvm.sh"
+[ -s "\$NVM_DIR/bash_completion" ] && \. "\$NVM_DIR/bash_completion"
+INNER_EOF
+  fi
+
+  if ! grep -q "export NVM_DIR" ~/.bashrc; then
+   bash -c "cat >> ~/.bashrc" <<'INNER_EOF'
+export NVM_DIR="\$HOME/.nvm"
+[ -s "\$NVM_DIR/nvm.sh" ] && \. "\$NVM_DIR/nvm.sh"
+[ -s "\$NVM_DIR/bash_completion" ] && \. "\$NVM_DIR/bash_completion"
+INNER_EOF
+  fi
 
   source ~/.nvm/nvm.sh
   nvm install 16.20.1
@@ -262,7 +282,10 @@ test -r "/usr/share/.dir_colors" && eval $(dircolors /usr/share/.dir_colors)
 EOF
   mkdir -p /usr/local/bin
   tee -a /usr/share/oh-my-zsh/zshrc >/dev/null <<EOF
-export PATH="\$PATH:/usr/local/bin"
+export PATH="\$PATH:/usr/local/bin:\$HOME/.local/bin:\$HOME/bin"
+export PATH=\$(printf %s "\$PATH" | awk -vRS=: '!a[\$0]++' | paste -s -d:)
+export DEV_SITE=$DEV_SITE
+export CF_ZONE_NAME=$CF_ZONE_NAME
 EOF
 
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
@@ -273,12 +296,14 @@ EOF
     sudo -i -u $user bash <<EOF
 cp /usr/share/oh-my-zsh/zshrc ~/.zshrc
 echo $user | chsh -s /usr/bin/zsh
+grep -q 'export DEV_SITE' ~/.bashrc || echo "export DEV_SITE=$DEV_SITE" >> ~/.bashrc
+grep -q 'export CF_ZONE_NAME' ~/.bashrc || echo "export CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.bashrc
 EOF
   done
 }
 
 function setup_cloudflare_tunnel() {
-  bash $script_dir/setup_cloudfare_tunnel.sh
+  bash $script_dir/setup_cloudflare_tunnel.sh
 }
 
 function setup_visualize() {
@@ -417,7 +442,7 @@ install_node)
 config_ssh)
   config_ssh
   ;;
-setup_cloudfare_tunnel)
+setup_cloudflare_tunnel)
   setup_cloudflare_tunnel
   ;;
 setup_visualize)
@@ -459,6 +484,7 @@ install)
         fi        
       done < "$script_dir/setup_$input/domain_list_template"
     fi
+    setup_cloudflare_tunnel
   else
     echo "${Red}ERROR: Setup $input not found${Color_Off}"
   fi
@@ -469,7 +495,7 @@ install)
   echo "  init    : install dependencies, nvm, node, pm2, cloudflare tunnel"
   echo "  setup_tailscale : setup tailscale (for workplace devices only, install in case you need assistance from devops team)"
   echo "  setup_shell : setup zsh shell"
-  echo "  setup_cloudfare_tunnel : setup cloudflare tunnel"
+  echo "  setup_cloudflare_tunnel : setup cloudflare tunnel"
   echo "  config_os : config os"
   echo "  install_dependencies : install dependencies"
   echo "  install_node : install node and packages (nvm, pm2, npm)"

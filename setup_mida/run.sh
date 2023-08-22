@@ -107,6 +107,11 @@ setup_env() {
 
     MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
     MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
+
+    if [[ "$MONGO_AUTH_ADMIN" == "true" ]]; then
+        MONGO_URI="$MONGO_URI&authSource=admin"
+    fi
+   
     MONGO_URI_ESCAPED=$(printf '%s\n' "$MONGO_URI" | sed -e 's/[\/&]/\\&/g')
 
     RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
@@ -140,6 +145,11 @@ setup_env_single() {
 
     MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
     MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
+
+    if [[ "$MONGO_AUTH_ADMIN" == "true" ]]; then
+        MONGO_URI="$MONGO_URI&authSource=admin"
+    fi
+
     MONGO_URI_ESCAPED=$(printf '%s\n' "$MONGO_URI" | sed -e 's/[\/&]/\\&/g')
 
     RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
@@ -223,7 +233,7 @@ post_setup() {
 
 setup_python_environment() {
     sudo nala update
-    sudo nala install software-properties-common
+    sudo nala install software-properties-common -y
     sudo add-apt-repository ppa:deadsnakes/ppa -y
     sudo nala update
     sudo nala install python3.8 -y
@@ -233,11 +243,13 @@ setup_python_environment() {
 
 install_dependencies() {
     if [ "$(docker ps -q -f name=mongodb)" == "" ]; then
-        docker-compose -f ../tools/mongodb/docker-compose.yml up -d
+        cp ../tools/mongodb/.env.example ../tools/mongodb/.env
+        docker compose -f ../tools/mongodb/docker-compose.yml up -d
         echo "INFO: start mongodb container"
     fi
     if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
-        docker-compose -f ../tools/rabbitmq/docker-compose.yml up -d
+        cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
+        docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
         echo "INFO: start rabbitmq container"
     fi    
 }

@@ -1,9 +1,8 @@
 version: "3.9"
 services:
  mongodb:
-    image: mongo:5.0.9-focal
+    image: mongo:6.0.9
     container_name: mongodb
-    user: "${UID}:${GID}"
     ports:
       - "${MONGODB_PORT}:27017"
     volumes:
@@ -11,8 +10,8 @@ services:
     restart: always
     environment:
       MONGO_INITDB_DATABASE: "${MONGODB_DATABASE}"
-      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_USERNAME}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_PASSWORD}"
+      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_ROOT_PASSWORD}"
     networks:
       - bss_dev
 networks:

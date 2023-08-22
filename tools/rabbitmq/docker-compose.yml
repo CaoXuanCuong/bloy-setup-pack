@@ -3,7 +3,6 @@ services:
   rabbitmq:
     image: rabbitmq:3.8-management-alpine
     container_name: rabbitmq
-    user: "${UID}:${GID}"
     ports:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_MANAGEMENT_PORT}:15672"
