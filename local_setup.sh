@@ -137,10 +137,12 @@ function install_dependencies() {
   sudo apt-get update
   sudo apt-get install docker-compose-plugin
 
+  sudo groupadd docker
   sudo usermod -aG docker $SUDO_USER
+  newgrp docker
 
   for tool in "${tools[@]}"; do
-    if [[ $(docker ps -q -f name=$tool) == "" ]]; then
+    if [[ $FORCE_INSTALL == false ]] && [[ $(docker ps -q -f name=$tool) == "" ]]; then
       echo "${Green} ******** Installing $tool container...********${Color_Off}"
       cp tools/$tool/.env.example tools/$tool/.env
       docker compose -f tools/$tool/docker-compose.yml up -d
@@ -482,7 +484,7 @@ install)
         if [[ ! -f "$script_dir/domain_list" ]]; then
           touch "$script_dir/domain_list"
         fi
-        
+
         if ! grep -q "$line" "$script_dir/domain_list"; then
           echo "$line" >> "$script_dir/domain_list"
         fi        
