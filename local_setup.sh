@@ -139,7 +139,6 @@ function install_dependencies() {
 
   sudo groupadd docker
   sudo usermod -aG docker $SUDO_USER
-  newgrp docker
 
   for tool in "${tools[@]}"; do
     if [[ $FORCE_INSTALL == false ]] && [[ $(docker ps -q -f name=$tool) == "" ]]; then
@@ -422,9 +421,15 @@ function exec_update() {
   )
 }
 
+function post_setup() {
+  newgrp docker
+  exit
+}
+
 case ${option} in
 init)
   init
+  post_setup
   ;;
 setup_tailscale)
   setup_tailscale
