@@ -74,45 +74,35 @@ Apps which are supported by this script:
 
 Steps to setup development project:
 
-4.1. Go to the folder of the app you want to setup
+4.1.  Run setup script
 
 ```bash
-cd setup_<app_folder>
-cp app.env.example app.env
+sudo bash local_setup.sh install <app-name> 
 ```
-Then edit app.env environment variables
 
+Example
 ```bash
-nano app.env
+sudo bash local_setup.sh install b2b
+sudo bash local_setup.sh install bcp
 ```
 
-NOTE: 
-
-- You only need to change variables which are in brackets `< >` in app.env, don't change other variables or other files
-
-- The script will read app.env and automatically setup other env files
-
-4.2. Run setup script
-
-```bash
-bash run.sh install
-```
-After finish setup, you can access the development source code stored at `$HOME/BSS/` 
+After finish setup, exit terminal session and open again, then you can access the development source code stored at `$HOME/BSS/` 
 
 _Notes: In case you want to update environment variables, you can run the following command_
 
 ```bash
-bash run.sh setup_env
-bash run.sh restart
+<app name> setup env  # Ex: b2b setup env
+<app name> restart    # Ex: b2b restart
+
 ```
 
-## 5. Using run.sh script
+## 5. Using app script
 Usage
 
-To use the run.sh script, navigate to the directory containing the script and execute it using the following command:
+To use the app script, execute it using the following command:
 
 ```bash
-bash run.sh <command>
+<app name> <command>  # Ex: b2b start
 ```
 
 Commands
