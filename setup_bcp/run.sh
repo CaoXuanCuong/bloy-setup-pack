@@ -142,6 +142,16 @@ setup_env_single() {
 }
 
 init_code() {
+    if [ "$(ls -A $DESTINATION_FOLDER)" ]; then
+        echo "${Red} WARNING: $DESTINATION_FOLDER is not empty, your source code will be deleted. Do you want to force reinstall? (y/n) ${Color_Off}"
+        read -r answer
+        if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            echo "Reinstalling..."
+        else
+            echo "exit"
+            exit 1
+        fi
+    fi
     rm -rf $DESTINATION_FOLDER
     mkdir -p $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do

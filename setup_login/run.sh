@@ -140,7 +140,7 @@ setup_env_single() {
 
 init_code() {
     if [ "$(ls -A $DESTINATION_FOLDER)" ]; then
-        echo "WARNING: $DESTINATION_FOLDER is not empty. Do you want to force reinstall? (y/n)"
+        echo "${Red} WARNING: $DESTINATION_FOLDER is not empty, your source code will be deleted. Do you want to force reinstall? (y/n) ${Color_Off}"
         read -r answer
         if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
             echo "Reinstalling..."
