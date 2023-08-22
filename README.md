@@ -16,16 +16,40 @@ If you need help, contact devops team to assist you
 
 2.1. Setup SSH key for Bitbucket
 
-_Notes: you have to install SSH keys on the server to be able to clone the repository using SSH instead of HTTPS_
+Run this script and put the public key to your bitbucket account
+    
+```bash
+if [ -f ~/.ssh/bss-wsl ]; then
+  echo "SSH key is already exist"
+  exit 0
+fi
 
-[Detailed instructions](https://shopify-admin-wiki.bsscommerce.com/en/shopify-general-document/devops/bitbucket-ssh)
+mkdir -p ~/.ssh
+read -p "Enter your email address: " EMAIL_ADDRESS
+ssh-keygen -t ed25519 -b 4096 -C $EMAIL_ADDRESS -f ~/.ssh/bss-wsl  -q -N ""
+eval `ssh-agent -s`
+ssh-add ~/.ssh/bss-wsl
 
-[Setting Bitbucket SSH key](https://bitbucket.org/account/settings/ssh-keys/)
+if [ ! -f ~/.ssh/config ]; then
+  touch ~/.ssh/config
+fi
+
+cat <<EOF >> ~/.ssh/config
+Host bitbucket.org
+  AddKeysToAgent yes
+  IdentityFile ~/.ssh/bss-wsl
+EOF
+
+echo "Please copy the following public key to your bitbucket account"
+tput setaf 6
+cat ~/.ssh/bss-wsl.pub
+tput sgr0
+```
 
 2.2. Clone project
 
 ```bash
-git clone <project-url>
+git clone <setup_pack_repo>
 ```
 2.3 Config git user
 
@@ -35,42 +59,38 @@ git config --global user.email "Your Email"
 ```
 
 ## 3. Setup environment 
-3.1. Go to shopify-dev-setup-pack folder and run command
-
-```bash
-cp script.env.example script.env
-```
-
-3.2. Edit script.env file
-Edit script.env file and change the value of the following variables:
-
-- `DEV_SITE`: Change this to a unique number id | Ex: 4678
-- `USERNAME`: Change this to your username | Ex: devtuannm
-
-3.3. Run setup dev environment script
+3.1. Run setup dev environment script
 
 ```bash
 sudo bash local_setup.sh init
 ```
 
-Run this after you have finished setup dev environment
+Options:
+- `-f`: Force to reinit dev environment
+
+Type to change value of the following variables:
+
+- `DEV_SITE`: Change this to a unique number id | Ex: tuannm123
+- `USERNAME`: Change this to your username | Ex: tuannm
+
+Quit the terminal session and open again
 
 ```bash
-zsh
-pm2 startup
+logout
+exit
 ```
 
 ## 4. Setup development project
 Apps which are supported by this script:
 
-- B2B Solution: folder `setup_b2b`
-- B2B Customer Portal: folder `setup_bcp`
-- Login Access Management: folder `setup_login`
-- Bloop 2.0: folder `setup_bloop`
-- Product Labels: folder `setup_label`
-- Product Options: folder `setup_option`
-- Store Locator: folder `setup_locator`
-- Mida Recording: folder `setup_mida`
+- B2B Solution: `b2b`
+- B2B Customer Portal: `bcp`
+- Login Access Management: `login`
+- Bloop 2.0: `bloop`
+- Product Labels: `label`
+- Product Options: `option`
+- Store Locator: `locator`
+- Mida Recording: `mida`
 
 Steps to setup development project:
 
@@ -105,16 +125,20 @@ To use the app script, execute it using the following command:
 <app name> <command>  # Ex: b2b start
 ```
 
-Commands
+Commands:
 
 - `install`: Install the development project (automatically setup environment variables, install dependencies, start the development app)
-- `setup_env`: Setup environment variables
+- `install_packages`: Install npm packages
+- `setup_env`: Setup and update environment variables
 - `restart`: Restart app processes (api, cms, ...)
 - `start`: Start app processes 
 - `stop`: Stop app processes 
 - `clean_process`: Delete app processes
 - `clean`: Delete app source code and processes
 - `pull`: Pull latest source code from origin master 
+
+Options:
+- `-p`: Prompt to recreate script env
 
 
 

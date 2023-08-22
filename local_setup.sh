@@ -100,6 +100,10 @@ if ! command -v nala &>/dev/null; then
   sudo apt install nala -y
 fi
 
+if command -v git &>/dev/null && [[ -d .git ]]; then
+  git config core.fileMode false
+fi
+
 # install required packages
 function install_dependencies() {
   packages=(
@@ -117,10 +121,6 @@ function install_dependencies() {
   echo "${Green}******** Installing required packages ********${Color_Off}"
   nala update
   nala install -y ${packages[@]}
-
-  if [[ -d .git ]]; then
-    git config core.fileMode false
-  fi
 
   if [[ $IS_WSL == "" ]]; then
     echo "${Red}******** Do you want to install dependencies (mysql, redis) using docker? (y/n) ********${Color_Off}"
@@ -305,6 +305,12 @@ EOF
     sudo -i -u $user bash <<EOF
 cp /usr/share/oh-my-zsh/zshrc ~/.zshrc
 echo $user | chsh -s /usr/bin/zsh
+
+grep -q 'DEV_SITE' ~/.shell_env || echo "DEV_SITE=$DEV_SITE" >> ~/.shell_env
+grep -q 'CF_ZONE_NAME' ~/.shell_env || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.shell_env
+
+grep -q 'shell_env' ~/.bashrc || echo "source ~/.shell_env" >> ~/.bashrc
+grep -q 'shell_env' ~/.zshrc || echo "source ~/.shell_env" >> ~/.zshrc
 EOF
   done
 }
@@ -428,7 +434,50 @@ function exec_update() {
 }
 
 function post_setup() {
+  groupadd docker
+  logout
   exit
+}
+
+function setup_app_tunnel() {
+  input=$1
+  if [[ -f "$script_dir/setup_$input/domain_list_template" ]]; then
+      while IFS=: read -r line || [[ -n "$line" ]]; do
+        if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
+          continue
+        fi
+
+        line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
+        
+        if [[ ! -f "$script_dir/domain_list" ]]; then
+          touch "$script_dir/domain_list"
+        fi
+
+        if ! grep -q "$line" "$script_dir/domain_list"; then
+          echo "$line" >> "$script_dir/domain_list"
+        fi        
+      done < "$script_dir/setup_$input/domain_list_template"
+  fi
+  setup_cloudflare_tunnel
+}
+
+function install() {
+  if [[ $SHELL != "/usr/bin/zsh" ]]; then
+    echo "${Red}ERROR: Check if you have run init command and run \"zsh\" command to load environment and configure your new shell${Color_Off}"
+    exit 1
+  fi
+
+  input=$1
+
+  # check if folder setup_$input exist
+  if [ -d "$script_dir/setup_$input" ]; then
+    sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
+    ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
+    chmod a+rx /usr/local/bin/local_setup
+    setup_app_tunnel $input
+  else
+    echo "${Red}ERROR: Setup $input not found${Color_Off}"
+  fi
 }
 
 case ${option} in
@@ -457,6 +506,9 @@ config_ssh)
 setup_cloudflare_tunnel)
   setup_cloudflare_tunnel
   ;;
+setup_app_tunnel)
+  setup_app_tunnel
+  ;;
 setup_visualize)
   setup_visualize
   ;;
@@ -470,41 +522,7 @@ version)
   version
   ;;
 install)
-  if [[ $SHELL != "/usr/bin/zsh" ]]; then
-    echo "${Red}ERROR: Check if you have run init command and run \"zsh\" command to load environment and configure your new shell${Color_Off}"
-    exit 1
-  fi
-
-  input=$1
-
-  # check if folder setup_$input exist
-  if [ -d "$script_dir/setup_$input" ]; then
-    sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
-    ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
-    chmod a+rx /usr/local/bin/local_setup
-
-    if [[ -f "$script_dir/setup_$input/domain_list_template" ]]; then
-      while IFS=: read -r line || [[ -n "$line" ]]; do
-        if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
-          continue
-        fi
-
-        line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
-        
-        if [[ ! -f "$script_dir/domain_list" ]]; then
-          touch "$script_dir/domain_list"
-        fi
-
-        if ! grep -q "$line" "$script_dir/domain_list"; then
-          echo "$line" >> "$script_dir/domain_list"
-        fi        
-      done < "$script_dir/setup_$input/domain_list_template"
-    fi
-    setup_cloudflare_tunnel
-  else
-    echo "${Red}ERROR: Setup $input not found${Color_Off}"
-  fi
-  ;;
+  
 *)
   echo "Usage: ./local_setup <option>"
   echo "Options:"

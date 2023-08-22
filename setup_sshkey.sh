@@ -1,11 +1,5 @@
-#!/bin/bash
-
-#COLORS
-Color_Off=$(tput sgr0) # Text Reset
-Green=$(tput setaf 2)  # Green
-
 if [ -f ~/.ssh/bss-wsl ]; then
-  echo "${Green} SSH key is already exist ${Color_Off}"
+  echo "SSH key is already exist"
   exit 0
 fi
 
@@ -25,7 +19,7 @@ Host bitbucket.org
   IdentityFile ~/.ssh/bss-wsl
 EOF
 
-echo "${Green} Please copy the following public key to your bitbucket account ${Color_Off}"
+echo "Please copy the following public key to your bitbucket account"
 tput setaf 6
 cat ~/.ssh/bss-wsl.pub
 tput sgr0

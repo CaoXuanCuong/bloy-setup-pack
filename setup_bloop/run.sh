@@ -10,6 +10,7 @@ fi
 cd $app_script_dir
 
 source $HOME/.nvm/nvm.sh
+source $HOME/.shell_env
 
 while getopts ":p" opt; do
   case $opt in
@@ -338,6 +339,21 @@ install_single() {
     (start_single $1)
 }
 
+install_packages() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+            if [ ! -f "package.json" ]; then
+                exit
+            fi
+            echo "# yarn install"
+            yarn install
+        )
+    done
+}
+
 start_production() {
     (clean_process)
 
@@ -388,6 +404,9 @@ init_db)
 install_single)
     install_single $1
     setup_env_single api
+    ;;
+install_packages)
+    install_packages
     ;;
 restart)
     start
