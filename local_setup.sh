@@ -479,6 +479,10 @@ install)
 
         line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
         
+        if [[ ! -f "$script_dir/domain_list" ]]; then
+          touch "$script_dir/domain_list"
+        fi
+        
         if ! grep -q "$line" "$script_dir/domain_list"; then
           echo "$line" >> "$script_dir/domain_list"
         fi        
