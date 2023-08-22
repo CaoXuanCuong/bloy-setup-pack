@@ -117,6 +117,10 @@ function install_dependencies() {
   echo "${Green}******** Installing required packages ********${Color_Off}"
   nala update
   nala install -y ${packages[@]}
+  
+  if [[ -d .git ]]; then
+    git config core.fileMode false
+  fi
 
   if [[ $IS_WSL == "" ]]; then
     echo "${Red}******** Do you want to install dependencies (mysql, redis) using docker? (y/n) ********${Color_Off}"
@@ -291,7 +295,7 @@ export CF_ZONE_NAME=$CF_ZONE_NAME
 EOF
 
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
-  chmod +x /usr/local/bin/local_setup
+  chmod a+rx /usr/local/bin/local_setup
 
   for dir in /home/*; do
     user=$(basename "$dir")
@@ -476,7 +480,7 @@ install)
   if [ -d "$script_dir/setup_$input" ]; then
     sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
     ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
-    chmod +x /usr/local/bin/$input
+    chmod a+rx /usr/local/bin/local_setup
 
     if [[ -f "$script_dir/setup_$input/domain_list_template" ]]; then
       while IFS=: read -r line || [[ -n "$line" ]]; do
