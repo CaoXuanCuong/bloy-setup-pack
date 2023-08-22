@@ -422,7 +422,6 @@ function exec_update() {
 }
 
 function post_setup() {
-  newgrp docker
   exit
 }
 
