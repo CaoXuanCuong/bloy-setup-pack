@@ -141,9 +141,10 @@ function install_dependencies() {
   sudo usermod -aG docker $SUDO_USER
 
   for tool in "${tools[@]}"; do
-    if [[ $FORCE_INSTALL == false ]] && [[ $(docker ps -q -f name=$tool) == "" ]]; then
+    if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
       echo "${Green} ******** Installing $tool container...********${Color_Off}"
       cp tools/$tool/.env.example tools/$tool/.env
+      docker compose -f tools/$tool/docker-compose.yml down
       docker compose -f tools/$tool/docker-compose.yml up -d
     fi
   done
