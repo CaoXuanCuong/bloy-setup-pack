@@ -461,8 +461,7 @@ function setup_app_tunnel() {
 
       # clean all domain that not contain $CF_ZONE_NAME
       if [[ -f "$script_dir/domain_list" ]]; then
-        sed -i "/$CF_ZONE_NAME/d" "$script_dir/domain_list"
-      fi
+        awk "/$CF_ZONE_NAME/" "$script_dir/domain_list" > temp && mv temp "$script_dir/domain_list"
 
       if [[ ! -f "$script_dir/domain_list" ]]; then
         touch "$script_dir/domain_list"
