@@ -320,6 +320,12 @@ EOF
 }
 
 function setup_cloudflare_tunnel() {
+
+  if [[ $FORCE_INSTALL == true ]]; then
+    bash $script_dir/setup_cloudflare_tunnel.sh --overwrite
+    return
+  fi
+
   bash $script_dir/setup_cloudflare_tunnel.sh
 }
 

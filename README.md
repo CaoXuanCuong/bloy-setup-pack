@@ -49,6 +49,7 @@ tput sgr0
 2.2. Clone project
 
 ```bash
+cd ~
 git clone <setup_pack_repo>
 ```
 2.3 Config git user
