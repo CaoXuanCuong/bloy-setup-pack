@@ -10,7 +10,6 @@ fi
 cd $app_script_dir
 
 source $HOME/.nvm/nvm.sh
-source $HOME/.shell_env
 
 while getopts ":p" opt; do
   case $opt in
@@ -46,6 +45,7 @@ if ! command -v npm &>/dev/null; then
 fi
 
 source app.env
+source $HOME/.shell_env
 
 if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
     echo "ERROR: SHOPIFY_API_KEY is not set"

@@ -404,7 +404,6 @@ function init() {
   setup_visualize
 
   echo "${Green}INFO: Install dev environment successfully${Color_Off}"
-  echo "${Green}INFO: Quit your current terminal session and reopen again ${Color_Off}"
 }
 
 function exec_update() {
@@ -434,7 +433,8 @@ function exec_update() {
 }
 
 function post_setup() {
-  groupadd docker
+  echo "${Green}INFO: Quit your current terminal session and reopen again ${Color_Off}"
+  newgrp docker
   logout
   exit
 }
@@ -522,7 +522,8 @@ version)
   version
   ;;
 install)
-  
+  install $1
+  ;;
 *)
   echo "Usage: ./local_setup <option>"
   echo "Options:"
