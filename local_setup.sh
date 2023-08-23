@@ -21,19 +21,23 @@ if [ -L "$0" ]; then
 fi
 cd $script_dir
 
-option="${1}"
-shift 1
 FORCE_INSTALL=false
+ARGS=()
 
-while getopts ":f" opt; do
-  case $opt in
-  f)
-    FORCE_INSTALL=true
-    ;;
-  \?)
-    echo "Invalid option: -$OPTARG" >&2
-    ;;
-  esac
+for arg in "$@"; do
+  if [[ $arg != -* ]]; then
+    ARGS+=("$arg")
+  else 
+    case $arg in
+      -f|--force)
+        FORCE_INSTALL=true
+        ;;
+      *)
+        echo "ERROR: Unknown option: $arg"
+        exit 1
+        ;;
+    esac
+  fi
 done
 
 if [ ! -f "script.env" ]; then
@@ -493,7 +497,7 @@ function install() {
   fi
 }
 
-case ${option} in
+case ${ARGS[0]} in
 init)
   init
   post_setup
@@ -520,7 +524,7 @@ setup_cloudflare_tunnel)
   setup_cloudflare_tunnel
   ;;
 setup_app_tunnel)
-  setup_app_tunnel $1
+  setup_app_tunnel ${ARGS[1]}
   ;;
 setup_visualize)
   setup_visualize
@@ -535,7 +539,7 @@ version)
   version
   ;;
 install)
-  install $1
+  install ${ARGS[1]}
   ;;
 *)
   echo "Usage: ./local_setup <option>"

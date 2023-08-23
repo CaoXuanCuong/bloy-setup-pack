@@ -49,11 +49,18 @@ mkdir -p /root/.cloudflared /etc/cloudflared
 cp cert.pem /root/.cloudflared/cert.pem 
 cp cert.pem /etc/cloudflared/cert.pem
 
+CF_TUNNEL_NAME="${USERNAME}-dev-tunnel-${DEV_SITE}"
 if [[ $(cloudflared tunnel list | grep "$CF_TUNNEL_NAME") == "" ]]; then
   echo "INFO: Creating cloudflare tunnel..."
-  cloudflared tunnel create $USERNAME-$CF_TUNNEL_NAME  
+  cloudflared tunnel create $CF_TUNNEL_NAME  
 fi
+
 CF_TUNNEL_ID=$(cloudflared tunnel list | grep "$CF_TUNNEL_NAME" | awk '{print $1}')
+
+if [ -z "$CF_TUNNEL_ID" ]; then
+  echo "ERROR: Failed to create cloudflare tunnel"
+  exit 1
+fi
 
 if [ ! -f "/root/.cloudflared/$CF_TUNNEL_ID.json" ]; then
   # check if overwrite is true
