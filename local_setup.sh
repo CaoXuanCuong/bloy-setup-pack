@@ -109,6 +109,8 @@ if command -v git &>/dev/null && [[ -d .git ]]; then
   git config core.fileMode false
 fi
 
+chmod a+rwx $script_dir
+
 # install required packages
 function install_dependencies() {
   packages=(
@@ -456,6 +458,16 @@ function post_setup() {
 function setup_app_tunnel() {
   input=$1
   if [[ -f "$script_dir/setup_$input/domain_list_template" ]]; then
+
+      # clean all domain that not contain $CF_ZONE_NAME
+      if [[ -f "$script_dir/domain_list" ]]; then
+        sed -i "/$CF_ZONE_NAME/d" "$script_dir/domain_list"
+      fi
+
+      if [[ ! -f "$script_dir/domain_list" ]]; then
+        touch "$script_dir/domain_list"
+      fi
+
       while IFS=: read -r line || [[ -n "$line" ]]; do
         if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
           continue
@@ -463,13 +475,6 @@ function setup_app_tunnel() {
 
         line=$(echo $line | sed "s/<n>/$DEV_SITE/" | sed "s/<zonename>/$CF_ZONE_NAME/")
         
-        if [[ ! -f "$script_dir/domain_list" ]]; then
-          touch "$script_dir/domain_list"
-        fi
-
-        # clean all domain that not contain $CF_ZONE_NAME
-        sed -i "/$CF_ZONE_NAME/d" "$script_dir/domain_list"
-
         if ! grep -q "$line" "$script_dir/domain_list"; then
           echo "$line" >> "$script_dir/domain_list"
         fi        

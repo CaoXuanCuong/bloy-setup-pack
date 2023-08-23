@@ -144,6 +144,35 @@ Commands:
 Options:
 - `-p`: Prompt to recreate script env
 
+## 6. Post installing
+
+6.1. Install fonts
+
+Install Fira Code Nerd Font Windows: Download and install [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FiraCode/Regular/FiraCodeNerdFont-Regular.ttf) and set your IDE (VSCode, Webstorm, ...) and Terminal font to `FiraCode Nerd Font`
+
+Install Fira Code Nerd Font Linux: Font is already installed by running the script, so you just need to set your IDE (VSCode, Webstorm, ...) and Terminal font to `FiraCode Nerd Font`
+
+6.2. Configure Terminal
+
+Open wsl or linux terminal, type in:
+```bash
+p10k configure
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

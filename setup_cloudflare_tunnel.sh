@@ -50,12 +50,12 @@ cp cert.pem /root/.cloudflared/cert.pem
 cp cert.pem /etc/cloudflared/cert.pem
 
 CF_TUNNEL_NAME="${USERNAME}-dev-tunnel-${DEV_SITE}"
-if [[ $(cloudflared tunnel list | grep "$CF_TUNNEL_NAME") == "" ]]; then
+if [[ $(cloudflared tunnel list | grep -w "$CF_TUNNEL_NAME") == "" ]]; then
   echo "INFO: Creating cloudflare tunnel..."
   cloudflared tunnel create $CF_TUNNEL_NAME  
 fi
 
-CF_TUNNEL_ID=$(cloudflared tunnel list | grep "$CF_TUNNEL_NAME" | awk '{print $1}')
+CF_TUNNEL_ID=$(cloudflared tunnel list | grep -w "$CF_TUNNEL_NAME" | awk '{print $1}')
 
 if [ -z "$CF_TUNNEL_ID" ]; then
   echo "ERROR: Failed to create cloudflare tunnel"
@@ -67,7 +67,8 @@ if [ ! -f "/root/.cloudflared/$CF_TUNNEL_ID.json" ]; then
   if [ "$OVERWRITE" == "true" ]; then
     echo "INFO: Overwriting cloudflare tunnel credentials..."
     cloudflared tunnel delete $CF_TUNNEL_ID
-    cloudflared tunnel create $USERNAME-$CF_TUNNEL_NAME
+    cloudflared tunnel create $CF_TUNNEL_NAME
+    CF_TUNNEL_ID=$(cloudflared tunnel list | grep -w "$CF_TUNNEL_NAME" | awk '{print $1}')
   else
     echo "ERROR: this cloudflare tunnel is connected to other device, please change DEV_SITE ENV in script.env and run:
     sudo bash setup_cloudflare_tunnel.sh"
@@ -112,9 +113,12 @@ if [ "$(systemctl is-enabled cloudflared.service)" == "enabled" ]; then
   sudo systemctl restart cloudflared
 else
   echo "INFO: not found cloudflared, installing cloudflared service..."
-  rm -f /etc/cloudflared/config.yml
-  rm -f cloudflared-update.service cloudflared.service
-  sudo cloudflared service install
-  sudo systemctl enable cloudflared
-  sudo systemctl start cloudflared
+  (
+    rm -f /etc/cloudflared/config.yml
+    cd /etc/systemd/system/
+    rm -f cloudflared*
+    sudo cloudflared service install
+    sudo systemctl enable cloudflared
+    sudo systemctl start cloudflared
+  )
 fi
