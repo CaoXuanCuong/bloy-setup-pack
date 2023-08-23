@@ -49,11 +49,11 @@ mkdir -p /root/.cloudflared /etc/cloudflared
 cp cert.pem /root/.cloudflared/cert.pem 
 cp cert.pem /etc/cloudflared/cert.pem
 
-if [[ $(cloudflared tunnel list | grep $CF_TUNNEL_NAME) == "" ]]; then
+if [[ $(cloudflared tunnel list | grep "$CF_TUNNEL_NAME") == "" ]]; then
   echo "INFO: Creating cloudflare tunnel..."
   cloudflared tunnel create $USERNAME-$CF_TUNNEL_NAME  
 fi
-CF_TUNNEL_ID=$(cloudflared tunnel list | grep $CF_TUNNEL_NAME | awk '{print $1}')
+CF_TUNNEL_ID=$(cloudflared tunnel list | grep "$CF_TUNNEL_NAME" | awk '{print $1}')
 
 if [ ! -f "/root/.cloudflared/$CF_TUNNEL_ID.json" ]; then
   # check if overwrite is true
@@ -63,7 +63,7 @@ if [ ! -f "/root/.cloudflared/$CF_TUNNEL_ID.json" ]; then
     cloudflared tunnel create $USERNAME-$CF_TUNNEL_NAME
   else
     echo "ERROR: this cloudflare tunnel is connected to other device, please change DEV_SITE ENV in script.env and run:
-    sudo bash setup_cloudfare_tunnel.sh"
+    sudo bash setup_cloudflare_tunnel.sh"
     exit 1
   fi
 fi

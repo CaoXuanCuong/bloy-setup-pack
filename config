@@ -1,5 +1,4 @@
 # ---------DO NOT CHANGE BELOW THIS LINE UNLESS NECESSARY ---------#
-CF_TUNNEL_NAME="dev-tunnel-${DEV_SITE}" 
 CF_ZONE_ID="338e2b3d833b2849e689565dc9c76b4f"
 CF_ZONE_NAME="dev-bsscommerce.com"
 LOG_FILE="/var/log/local_migration.log"

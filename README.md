@@ -49,20 +49,21 @@ tput sgr0
 2.2. Clone project
 
 ```bash
-cd ~
-git clone <setup_pack_repo>
+mkdir -p ~/BSS
+git clone git@bitbucket.org:bsssupport/shopify-dev-setup-pack.git ~/BSS/shopify-dev-setup-pack
 ```
 2.3 Config git user
 
 ```bash
 git config --global user.name "Your Name"
-git config --global user.email "Your Email"
+git config --global user.email "Your Company Email"
 ```
 
 ## 3. Setup environment 
 3.1. Run setup dev environment script
 
 ```bash
+cd ~/BSS/shopify-dev-setup-pack
 sudo bash local_setup.sh init
 ```
 
@@ -98,13 +99,15 @@ Steps to setup development project:
 4.1.  Run setup script
 
 ```bash
+cd ~/BSS/shopify-dev-setup-pack
 sudo bash local_setup.sh install <app-name> 
 ```
 
 Example
 ```bash
-sudo bash local_setup.sh install b2b
-sudo bash local_setup.sh install bcp
+sudo bash local_setup.sh install b2b # Install B2B Solution
+
+sudo bash local_setup.sh install bcp # Install B2B Customer Portal
 ```
 
 After finish setup, exit terminal session and open again, then you can access the development source code stored at `$HOME/BSS/` 
