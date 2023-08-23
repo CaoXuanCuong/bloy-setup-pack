@@ -307,8 +307,8 @@ EOF
   grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
   grep -q 'CF_ZONE_NAME' /etc/environment || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> /etc/environment
   
+  chmod a+rx $script_dir/local_setup.sh
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
-  chmod a+rx /usr/local/bin/local_setup
 
   for dir in /home/*; do
     user=$(basename "$dir")
@@ -462,6 +462,7 @@ function setup_app_tunnel() {
       # clean all domain that not contain $CF_ZONE_NAME
       if [[ -f "$script_dir/domain_list" ]]; then
         awk "/$CF_ZONE_NAME/" "$script_dir/domain_list" > temp && mv temp "$script_dir/domain_list"
+      fi
 
       if [[ ! -f "$script_dir/domain_list" ]]; then
         touch "$script_dir/domain_list"
@@ -493,8 +494,8 @@ function install() {
   # check if folder setup_$input exist
   if [ -d "$script_dir/setup_$input" ]; then
     sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
+    chmod a+rx $script_dir/setup_$input/run.sh
     ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
-    chmod a+rx /usr/local/bin/local_setup
     setup_app_tunnel $input
   else
     echo "${Red}ERROR: Setup $input not found${Color_Off}"
