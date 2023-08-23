@@ -243,6 +243,18 @@ setup_python_environment() {
 }
 
 install_dependencies() {
+    if command -v mongod &>/dev/null; then
+        echo "${Red} ******** Disable mongodb service ********${Color_Off}"
+        systemctl stop mongod
+        systemctl disable mongod
+    fi
+
+    if command -v rabbitmq-server &>/dev/null; then
+        echo "${Red} ******** Disable rabbitmq service ********${Color_Off}"
+        systemctl stop rabbitmq-server
+        systemctl disable rabbitmq-server
+    fi
+    
     if [ "$(docker ps -q -f name=mongodb)" == "" ]; then
         cp ../tools/mongodb/.env.example ../tools/mongodb/.env
         docker compose -f ../tools/mongodb/docker-compose.yml up -d

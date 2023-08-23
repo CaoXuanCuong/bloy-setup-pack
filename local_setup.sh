@@ -51,6 +51,7 @@ if [ ! -f "script.env" ]; then
 fi
 
 source script.env
+source config
 
 if [[ "$DEV_SITE" == "<DEV_SITE_ID>" || "$USERNAME" == "<USERNAME>" ]]; then
   rm -f script.env
@@ -122,17 +123,20 @@ function install_dependencies() {
   nala update
   nala install -y ${packages[@]}
 
-  if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Do you want to install dependencies (mysql, redis) using docker? (y/n) ********${Color_Off}"
-    read -r answer
-    if [[ $answer == "n" ]]; then
-      echo "${Red}******** Skipping install dependencies ********${Color_Off}"
-      return;
-    fi
+  if command -v mysql &>/dev/null; then
+    echo "${Green} ******** Disable mysql service ********${Color_Off}"
+    systemctl stop mysql
+    systemctl disable mysql
+  fi
+
+  if command -v redis-server &>/dev/null; then
+    echo "${Green} ******** Disable redis service ********${Color_Off}"
+    systemctl stop redis-server
+    systemctl disable redis-server
   fi
 
   if ! docker info &>/dev/null; then
-    echo "${Green} ******** Installing docker...********${Color_Off}"
+    echo "${Green} ******** Installing docker, do not terminate ********${Color_Off}"
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
     rm -f get-docker.sh
@@ -453,6 +457,9 @@ function setup_app_tunnel() {
           touch "$script_dir/domain_list"
         fi
 
+        # clean all domain that not contain $CF_ZONE_NAME
+        sed -i "/$CF_ZONE_NAME/d" "$script_dir/domain_list"
+
         if ! grep -q "$line" "$script_dir/domain_list"; then
           echo "$line" >> "$script_dir/domain_list"
         fi        
@@ -507,7 +514,7 @@ setup_cloudflare_tunnel)
   setup_cloudflare_tunnel
   ;;
 setup_app_tunnel)
-  setup_app_tunnel
+  setup_app_tunnel $1
   ;;
 setup_visualize)
   setup_visualize
@@ -530,7 +537,8 @@ install)
   echo "  init    : install dependencies, nvm, node, pm2, cloudflare tunnel"
   echo "  setup_tailscale : setup tailscale (for workplace devices only, install in case you need assistance from devops team)"
   echo "  setup_shell : setup zsh shell"
-  echo "  setup_cloudflare_tunnel : setup cloudflare tunnel"
+  echo "  setup_cloudflare_tunnel : route all domain in domain_list file"
+  echo "  setup_app_tunnel <app name>: route all domain in setup_<app>/domain_list_template file"
   echo "  config_os : config os"
   echo "  install_dependencies : install dependencies"
   echo "  install_node : install node and packages (nvm, pm2, npm)"

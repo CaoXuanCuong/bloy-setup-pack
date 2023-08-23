@@ -111,7 +111,7 @@ After finish setup, exit terminal session and open again, then you can access th
 _Notes: In case you want to update environment variables, you can run the following command_
 
 ```bash
-<app name> setup env  # Ex: b2b setup env
+<app name> setup_env  # Ex: b2b setup env
 <app name> restart    # Ex: b2b restart
 
 ```
