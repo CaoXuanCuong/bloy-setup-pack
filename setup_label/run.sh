@@ -194,7 +194,9 @@ init_code_single() {
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
     echo "init code for $DIRECTORY"
-    cd $DIRECTORY && git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY yarn install
+    cd $DIRECTORY 
+    git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY 
+    yarn install
 }
 
 init_db() {
