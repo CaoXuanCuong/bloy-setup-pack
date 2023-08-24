@@ -334,14 +334,14 @@ function config_env() {
   echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> shell_env_temp
   cp shell_env_temp /usr/share/.shell_env
   chmod a+rwx /usr/share/.shell_env
-  grep -q 'shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
-  grep -q 'shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
+  grep -q 'source /usr/share/.shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
+  grep -q 'source /usr/share/.shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
 
   for dir in /home/*; do
     user=$(basename "$dir")
     sudo -i -u $user bash <<EOF
-grep -q 'shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
-grep -q 'shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
+grep -q 'source /usr/share/.shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
+grep -q 'source /usr/share/.shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
 EOF
   done
   rm -f shell_env_temp
