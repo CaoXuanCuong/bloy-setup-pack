@@ -111,6 +111,19 @@ fi
 
 chmod a+rwx $script_dir
 
+function setup_symlink() {
+  echo "${Green}******** Setup symlink to scripts ********${Color_Off}"
+  chmod a+rwx $script_dir/local_setup.sh
+  ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
+
+  for dir in $script_dir/setup_*; do
+    if [[ -d "$script_dir/$dir" ]] && [[ -f "$script_dir/$dir/run.sh" ]]; then
+      chmod a+rwx $script_dir/$dir/run.sh
+      ln -sf $script_dir/$dir/run.sh /usr/local/bin/${dir#setup_}
+    fi
+  done
+}
+
 # install required packages
 function install_dependencies() {
   packages=(
@@ -307,9 +320,6 @@ EOF
   grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
   grep -q 'CF_ZONE_NAME' /etc/environment || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> /etc/environment
   
-  chmod a+rx $script_dir/local_setup.sh
-  ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
-
   for dir in /home/*; do
     user=$(basename "$dir")
     sudo -i -u $user bash <<EOF
@@ -494,8 +504,6 @@ function install() {
   # check if folder setup_$input exist
   if [ -d "$script_dir/setup_$input" ]; then
     sudo -u $SUDO_USER bash $script_dir/setup_$input/run.sh install -p
-    chmod a+rx $script_dir/setup_$input/run.sh
-    ln -sf $script_dir/setup_$input/run.sh /usr/local/bin/$input
     setup_app_tunnel $input
   else
     echo "${Red}ERROR: Setup $input not found${Color_Off}"
@@ -505,6 +513,7 @@ function install() {
 case ${ARGS[0]} in
 init)
   init
+  setup_symlink
   post_setup
   ;;
 setup_tailscale)
@@ -545,6 +554,9 @@ version)
   ;;
 install)
   install ${ARGS[1]}
+  ;;
+setup_symlink)
+  setup_symlink
   ;;
 *)
   echo "Usage: ./local_setup <option>"

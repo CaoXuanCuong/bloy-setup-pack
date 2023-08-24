@@ -110,7 +110,7 @@ update_env_single() {
 }
 
 setup_env() {
-    for env_file in "${env_files[@]}"; dor
+    for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
     done
     cd $DESTINATION_FOLDER
