@@ -320,7 +320,11 @@ EOF
 
   grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
   grep -q 'CF_ZONE_NAME' /etc/environment || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> /etc/environment
-  
+  grep -q 'DEV_SITE' ~/.shell_env || echo "DEV_SITE=$DEV_SITE" >> ~/.shell_env
+  grep -q 'CF_ZONE_NAME' ~/.shell_env || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.shell_env
+  grep -q 'shell_env' ~/.bashrc || echo "source ~/.shell_env" >> ~/.bashrc
+  grep -q 'shell_env' ~/.zshrc || echo "source ~/.shell_env" >> ~/.zshrc
+
   for dir in /home/*; do
     user=$(basename "$dir")
     sudo -i -u $user bash <<EOF
