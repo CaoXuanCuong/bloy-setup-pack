@@ -45,7 +45,7 @@ if ! command -v npm &>/dev/null; then
 fi
 
 source app.env
-source $HOME/.shell_env
+source /usr/share/.shell_env
 
 if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
     echo "ERROR: SHOPIFY_API_KEY is not set"

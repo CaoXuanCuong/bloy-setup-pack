@@ -318,26 +318,33 @@ export PATH="\$PATH:/usr/local/bin:\$HOME/.local/bin:\$HOME/bin"
 export PATH=\$(printf %s "\$PATH" | awk -vRS=: '!a[\$0]++' | paste -s -d:)
 EOF
 
-  grep -q 'DEV_SITE' /etc/environment || echo "DEV_SITE=$DEV_SITE" >> /etc/environment
-  grep -q 'CF_ZONE_NAME' /etc/environment || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> /etc/environment
-  grep -q 'DEV_SITE' ~/.shell_env || echo "DEV_SITE=$DEV_SITE" >> ~/.shell_env
-  grep -q 'CF_ZONE_NAME' ~/.shell_env || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.shell_env
-  grep -q 'shell_env' ~/.bashrc || echo "source ~/.shell_env" >> ~/.bashrc
-  grep -q 'shell_env' ~/.zshrc || echo "source ~/.shell_env" >> ~/.zshrc
-
   for dir in /home/*; do
     user=$(basename "$dir")
     sudo -i -u $user bash <<EOF
 cp /usr/share/oh-my-zsh/zshrc ~/.zshrc
 echo $user | chsh -s /usr/bin/zsh
-
-grep -q 'DEV_SITE' ~/.shell_env || echo "DEV_SITE=$DEV_SITE" >> ~/.shell_env
-grep -q 'CF_ZONE_NAME' ~/.shell_env || echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> ~/.shell_env
-
-grep -q 'shell_env' ~/.bashrc || echo "source ~/.shell_env" >> ~/.bashrc
-grep -q 'shell_env' ~/.zshrc || echo "source ~/.shell_env" >> ~/.zshrc
 EOF
   done
+}
+
+function config_env() {
+  echo "${Green}******** Configuring environment variables ********${Color_Off}"
+  cp config shell_env_temp
+  echo "DEV_SITE=$DEV_SITE" >> shell_env_temp
+  echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> shell_env_temp
+  cp shell_env_temp /usr/share/.shell_env
+  chmod a+rwx /usr/share/.shell_env
+  grep -q 'shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
+  grep -q 'shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
+
+  for dir in /home/*; do
+    user=$(basename "$dir")
+    sudo -i -u $user bash <<EOF
+grep -q 'shell_env' ~/.bashrc || echo "source /usr/share/.shell_env" >> ~/.bashrc
+grep -q 'shell_env' ~/.zshrc || echo "source /usr/share/.shell_env" >> ~/.zshrc
+EOF
+  done
+  rm -f shell_env_temp
 }
 
 function setup_cloudflare_tunnel() {
@@ -427,6 +434,8 @@ function init() {
 
   config_os
   setup_shell
+
+  config_env
 
   install_dependencies
   config_ssh
@@ -538,6 +547,9 @@ install_node)
   ;;
 config_ssh)
   config_ssh
+  ;;
+config_env)
+  config_env
   ;;
 setup_cloudflare_tunnel)
   setup_cloudflare_tunnel
