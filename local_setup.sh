@@ -117,9 +117,10 @@ function setup_symlink() {
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
 
   for dir in $script_dir/setup_*; do
-    if [[ -d "$script_dir/$dir" ]] && [[ -f "$script_dir/$dir/run.sh" ]]; then
-      chmod a+rwx $script_dir/$dir/run.sh
-      ln -sf $script_dir/$dir/run.sh /usr/local/bin/${dir#setup_}
+    if [[ -d "$dir" ]] && [[ -f "$dir/run.sh" ]]; then
+      chmod a+rwx $dir/run.sh
+      dir_basename=$(basename $dir)
+      ln -sf $dir/run.sh /usr/local/bin/${dir_basename#setup_}
     fi
   done
 }
