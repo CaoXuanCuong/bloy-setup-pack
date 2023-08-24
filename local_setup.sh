@@ -177,8 +177,7 @@ function install_dependencies() {
     if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
       echo "${Green} ******** Installing $tool container...********${Color_Off}"
       cp tools/$tool/.env.example tools/$tool/.env
-      docker compose -f tools/$tool/docker-compose.yml down
-      docker compose -f tools/$tool/docker-compose.yml up -d
+      docker compose -f tools/$tool/docker-compose.yml up -d --force-recreate
     fi
   done
 }
@@ -449,6 +448,26 @@ function init() {
   echo "${Green}INFO: Install dev environment successfully${Color_Off}"
 }
 
+function restart_container() {
+  if ! command -v docker &>/dev/null; then
+    echo "Docker is not installed"
+    return
+  fi
+
+  # find folders in tools
+  for tool in $script_dir/tools/*; do
+    if [[ -d "$tool" ]]; then
+      if [[ -f "$tool/docker-compose.yml" ]]; then
+        tool_name=$(basename $tool)
+        if [[ $(docker ps -q -f name=$tool_name) != "" ]]; then
+          echo "${Cyan}----- Restarting $tool_name container... ------${Color_Off}"
+          docker compose -f $tool/docker-compose.yml up -d --force-recreate
+        fi
+      fi
+    fi
+  done
+}
+
 function exec_update() {
   (
     SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
@@ -578,6 +597,9 @@ install)
 setup_symlink)
   setup_symlink
   ;;
+restart_container)
+  restart_container
+  ;;
 *)
   echo "Usage: ./local_setup <option>"
   echo "Options:"
@@ -590,5 +612,9 @@ setup_symlink)
   echo "  install_dependencies : install dependencies"
   echo "  install_node : install node and packages (nvm, pm2, npm)"
   echo "  config_ssh : config ssh"
+  echo "  config_env : config environment variables"
+  echo "  setup_visualize : setup visualize"
+  echo "  pull : pull latest changes from git"
+  echo "  restart_container : restart all containers"
   ;;
 esac

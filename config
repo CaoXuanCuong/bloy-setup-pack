@@ -1,5 +1,5 @@
 # ---------DO NOT CHANGE BELOW THIS LINE UNLESS NECESSARY ---------#
-CF_ZONE_NAME="dev-bsscommerce.com"
+export CF_ZONE_NAME="dev-bsscommerce.com"
 LOG_FILE="/var/log/local_migration.log"
 TAILSCALE_HOST="https://headscale.dev-bsscommerce.com:443"
 TAILSCALE_AUTHKEY="4a2c12d80e2a51017722bbfa4f98571b1a8674681e909083"
@@ -13,7 +13,7 @@ export MYSQL_PASSWORD="Dev1234567@#"
 
 export REDIS_HOST="localhost"
 export REDIS_PORT="6370"
-export REDIS_PASSWORD="Dev1234567@#"
+export REDIS_PASSWORD="Dev1234567"
 
 export MONGO_HOST="localhost"
 export MONGO_PORT="27010"
