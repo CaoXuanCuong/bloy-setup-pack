@@ -167,7 +167,10 @@ function install_dependencies() {
   nala update
   nala install docker-compose-plugin
 
-  groupadd docker
+  if ! grep -q docker /etc/group; then
+    echo "${Green} ******** Create docker group ********${Color_Off}"
+    groupadd docker
+  fi
   usermod -aG docker $SUDO_USER
 
   for tool in "${tools[@]}"; do
