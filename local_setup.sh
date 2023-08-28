@@ -125,6 +125,11 @@ function setup_symlink() {
   done
 }
 
+tools=(
+  mysql
+  redis
+)
+
 # install required packages
 function install_dependencies() {
   packages=(
@@ -132,11 +137,6 @@ function install_dependencies() {
     curl
     wget
     openssh-server
-  )
-
-  tools=(
-    mysql
-    redis
   )
 
   echo "${Green}******** Installing required packages ********${Color_Off}"
@@ -468,6 +468,17 @@ function restart_container() {
   done
 }
 
+function restart_container_single() {
+  tool=$1
+  if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
+    echo "${Green} ******** Installing $tool container...********${Color_Off}"
+    cp tools/$tool/.env.example tools/$tool/.env
+  else
+    echo "${Cyan}----- Restarting $tool container... ------${Color_Off}"
+  fi
+  docker compose -f tools/$tool/docker-compose.yml up -d --force-recreate
+}
+
 function exec_update() {
   (
     SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
@@ -600,6 +611,9 @@ setup_symlink)
 restart_container)
   restart_container
   ;;
+restart_container_single)
+  restart_container_single ${ARGS[1]}
+  ;;
 *)
   echo "Usage: ./local_setup <option>"
   echo "Options:"
@@ -616,5 +630,6 @@ restart_container)
   echo "  setup_visualize : setup visualize"
   echo "  pull : pull latest changes from git"
   echo "  restart_container : restart all containers"
+  echo "  restart_container_single <container name> : restart single container"
   ;;
 esac

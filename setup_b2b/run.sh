@@ -246,6 +246,24 @@ init_db_single() {
     fi
 }
 
+update_db() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+            if [ ! -f "package.json" ]; then
+                exit
+            fi
+            if [ -f ".sequelizerc" ]; then
+                GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+                echo -e "\033[32m\n----------- UPDATE DB ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
+                npm run db-update
+            fi
+        )
+    done
+}
+
 start() {
     for env_file in "${env_files[@]}"; do
         (
@@ -430,6 +448,9 @@ install)
     ;;
 init_db)
     init_db
+    ;;
+update_db)
+    update_db
     ;;
 post_setup)
     post_setup
