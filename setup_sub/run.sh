@@ -67,6 +67,8 @@ mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
     cms.env
+    proxy.env
+    renewing.env
 )
 
 update_env() {
@@ -100,14 +102,15 @@ setup_env() {
     sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" "${env_files[@]}"
     sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" "${env_files[@]}"
 
-    sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
-    sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
-
     sed -i "s/<DB_HOST>/$DB_HOST/g" "${env_files[@]}"
     sed -i "s/<DB_PORT>/$DB_PORT/g" "${env_files[@]}"
     sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" "${env_files[@]}"
     sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" "${env_files[@]}"
     sed -i "s/<DB_NAME>/$DB_NAME/g" "${env_files[@]}"
+
+    sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
+    sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
+    sed -i "s/<PROXY_PORT>/$PROXY_PORT/g" "${env_files[@]}"
     
     update_env
     echo "DONE: setup env"
@@ -134,6 +137,7 @@ setup_env_single() {
     
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
+    sed -i "s/<PROXY_PORT>/$PROXY_PORT/g" $1.env
     
     update_env_single $1
     echo "DONE: setup env for $1"
@@ -197,8 +201,8 @@ init_db() {
                 echo "ERROR: package.json is not exist in $DIRECTORY"
                 exit
             fi
-            if [ -f "src/.sequelizerc" ]; then
-                cd src
+            if [ -f ".sequelizerc" ]; then
+                echo "# npm run db-init"
                 npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
             fi
         )
@@ -217,20 +221,13 @@ init_db_single() {
         echo "ERROR: package.json is not exist in $DIRECTORY"
         return
     fi
-    if [ -f "src/.sequelizerc" ]; then
-        cd src
+    if [ -f ".sequelizerc" ]; then
         npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
     fi
 }
 
 post_setup() {
-    (
-        cd $DESTINATION_FOLDER
-        source api.env
-        cd "$DIRECTORY"
-        echo "# npm run build-script"
-        npm run build-script
-    )
+    return
 }
 
 start() {
@@ -373,11 +370,8 @@ start_production() {
             if [ ! -f "package.json" ]; then
                     exit
             fi
-            if [ $env_file == "cms.env" ]; then
-                npm run build                    
-            fi
-            if [ $env_file == "api.env" ]; then
-                npm run build-script
+            if [ $env_file == "cms.env" ] || [ $env_file == "proxy.env" ]; then
+                npm run build
             fi
             pm2 start npm --name $PROCESS_NAME-prod -- run start
         )
@@ -464,7 +458,7 @@ push() {
         )
     done
 }
-
+    
 case ${option} in
 init)
     init_code
@@ -479,23 +473,16 @@ init_single)
     setup_env_single $1
     ;;
 install)
-    echo -e "\033[32mInstalling...\033[0m"
     init_code
     setup_env
     init_db
     post_setup
     start
-    (
-        cd $DESTINATION_FOLDER
-        source cms.env
-        echo -e "\e[32mCMS URL: $SERVER_URL\e[0m"
-    )
     ;;
 init_db)
     init_db
     ;;
 install_single)
-    echo -e "\033[32mInstalling...\033[0m"  
     install_single $1
     setup_env_single api
     ;;
@@ -576,7 +563,7 @@ push)
     echo "   install_single <name> : setup code and start single process"
     echo "   install_packages : install packages"
     echo "   init      : setup code for all services"
-    echo "   init._single <name> : setup code for single service"
+    echo "   init_single <name> : setup code for single service"
     echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"
@@ -585,6 +572,7 @@ push)
     echo "   start      : start processes"
     echo "   start_single <name> : start single process"
     echo "   start_production : start production processes"
+    echo "   restart    : restart processes"
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"
@@ -592,6 +580,7 @@ push)
     echo "   check_branch : check current branch for all repo"
     echo "   commit     : commit code for all repo"
     echo "   push       : push code for all repo"
+    echo "   init_db    : init db"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac

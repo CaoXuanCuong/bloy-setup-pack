@@ -426,6 +426,86 @@ start_production() {
     pm2 save
 }
 
+check_branch() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            if [ -d ".git" ]; then
+                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+            fi
+        )
+    done
+}
+
+commit() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            if [ -d ".git" ]; then
+                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                # detect if there are uncommitted changes
+                UNCOMMITTED=$(git status --porcelain)
+                if [ -n "$UNCOMMITTED" ]; then
+                    echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
+                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
+                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    read message
+                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                        git add .
+                        git commit -m "$message"
+                        echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                    fi
+                fi
+
+            fi
+        )
+    done
+}
+    
+
+push() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            if [ -d ".git" ]; then
+                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                # detect if there are uncommitted changes
+                UNCOMMITTED=$(git status --porcelain)
+                if [ -n "$UNCOMMITTED" ]; then
+                    echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
+                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
+                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    read message
+                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                        git add .
+                        git commit -m "$message"
+                        echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                    fi
+                fi
+
+                git fetch origin
+                commits=$(git log origin/$current_branch..$current_branch --oneline)
+                if [ -n "$commits" ]; then;
+                    git push origin $current_branch
+                    echo "${Green}SUCCESS: Push to branch ${current_branch^^} ${Color_Off}"
+                    echo "$commits" | awk '{print NR". "$0}'
+                else
+                    echo "${Green}INFO: Remote branch already up to date. ${Color_Off}"
+                fi
+            fi
+        )
+    done
+}
+
 case ${option} in
 init)
     init_code
@@ -517,6 +597,15 @@ clean)
 pull)
     pull
     ;;
+check_branch)
+    check_branch
+    ;;
+commit)
+    commit
+    ;;
+push)
+    push
+    ;;
 *)
     echo "./.sh <option>"
     echo "option:"
@@ -538,6 +627,10 @@ pull)
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"
+    echo "   pull       : pull code for all repo"
+    echo "   check_branch : check current branch for all repo"
+    echo "   commit     : commit code for all repo"
+    echo "   push       : push code for all repo"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac

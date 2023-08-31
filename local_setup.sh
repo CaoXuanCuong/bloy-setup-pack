@@ -2,12 +2,12 @@
 
 #COLORS
 # Reset
-Color_Off=$(tput sgr0) # Text Reset
-Red=$(tput setaf 1)    # Red
-Green=$(tput setaf 2)  # Green
-Yellow=$(tput setaf 3) # Yellow
-Purple=$(tput setaf 5) # Purple
-Cyan=$(tput setaf 6)   # Cyan
+export Color_Off=$(tput sgr0) # Text Reset
+export Red=$(tput setaf 1)    # Red
+export Green=$(tput setaf 2)  # Green
+export Yellow=$(tput setaf 3) # Yellow
+export Purple=$(tput setaf 5) # Purple
+export Cyan=$(tput setaf 6)   # Cyan
 
 if [[ $EUID -ne 0 ]]; then
   echo "${Red}******** Permission denied, please run with sudo ********${Color_Off}"

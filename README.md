@@ -129,8 +129,6 @@ To use the app script, execute it using the following command:
 <app name> <command>  # Ex: b2b start
 ```
 
-Commands:
-
 - `install`: Install the development project (automatically setup environment variables, install dependencies, start the development app)
 - `install_packages`: Install npm packages
 - `setup_env`: Setup and update environment variables
@@ -140,6 +138,11 @@ Commands:
 - `clean_process`: Delete app processes
 - `clean`: Delete app source code and processes
 - `pull`: Pull latest source code from origin master 
+- `check_branch`: Check current branch for all repo
+- `commit`: Commit code for all repo
+- `push`: Push code for all repo
+- `update_db`: Run migrate database for all microservices (b2b only)
+
 
 Options:
 - `-p`: Prompt to recreate script env
