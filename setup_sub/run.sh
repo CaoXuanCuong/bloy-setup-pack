@@ -169,7 +169,7 @@ init_code() {
             echo "install code and packages in $DIRECTORY"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                yarn install
+                npm install
             fi
         )
     done
@@ -188,7 +188,7 @@ init_code_single() {
     echo "init code for $DIRECTORY"
     cd $DIRECTORY 
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY 
-    yarn install
+    npm install
 }
 
 init_db() {
@@ -352,8 +352,8 @@ install_packages() {
             if [ ! -f "package.json" ]; then
                 exit
             fi
-            echo "# yarn install"
-            yarn install
+            echo "# npm install"
+            npm install
         )
     done
 }
