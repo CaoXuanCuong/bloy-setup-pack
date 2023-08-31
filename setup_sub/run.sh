@@ -169,7 +169,7 @@ init_code() {
             echo "install code and packages in $DIRECTORY"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                npm install
+                npm install --force
             fi
         )
     done
@@ -188,7 +188,7 @@ init_code_single() {
     echo "init code for $DIRECTORY"
     cd $DIRECTORY 
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY 
-    npm install
+    npm install --force
 }
 
 init_db() {
@@ -352,8 +352,8 @@ install_packages() {
             if [ ! -f "package.json" ]; then
                 exit
             fi
-            echo "# npm install"
-            npm install
+            echo "# npm install --force"
+            npm install --force
         )
     done
 }
