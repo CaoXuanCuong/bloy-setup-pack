@@ -555,6 +555,7 @@ function install() {
   else
     echo "${Red}ERROR: Setup $input not found${Color_Off}"
   fi
+  (setup_symlink)
 }
 
 case ${ARGS[0]} in
