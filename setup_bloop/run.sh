@@ -448,7 +448,7 @@ push() {
 
                 git fetch origin
                 commits=$(git log origin/$current_branch..$current_branch --oneline)
-                if [ -n "$commits" ]; then;
+                if [ -n "$commits" ]; then
                     git push origin $current_branch
                     echo "${Green}SUCCESS: Push to branch ${current_branch^^} ${Color_Off}"
                     echo "$commits" | awk '{print NR". "$0}'
