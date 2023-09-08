@@ -223,13 +223,7 @@ init_db_single() {
 }
 
 post_setup() {
-    (
-        cd $DESTINATION_FOLDER
-        source api.env
-        cd "$DIRECTORY"
-        echo "# npm run build-script"
-        npm run build-script
-    )
+    # do nothing
 }
 
 start() {
@@ -247,13 +241,7 @@ start() {
                 if [ ! -f "package.json" ]; then
                     exit
                 fi
-                if [ $env_file == "cms.env" ]; then
-                    echo "# NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js "
-                    NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js 
-                else
-                    echo "# NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev"
-                    NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
-                fi
+                NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
             fi
         )
     done
@@ -277,13 +265,7 @@ start_single() {
         if [ ! -f "package.json" ]; then
                     exit
         fi
-        if [ $1 == "cms" ]; then
-            echo "# NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js "
-            NODE_ENV=development pm2 start npx --name $PROCESS_NAME -- node server.js 
-        else
-            echo "# NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev"
-            NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
-        fi
+        NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
     fi
 }
 
