@@ -18,17 +18,11 @@ source $HOME/.nvm/nvm.sh
 while getopts ":p" opt; do
   case $opt in
     p)
-      echo "${Green}******** Enter app environment. ********${Color_Off}"
-      read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
-
-      read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
-      
+      echo "${Green}******** Enter app environment. ********${Color_Off}"      
       read -p "API_VERSION (Default: 2022-10): " API_VERSION
       API_VERSION=${API_VERSION:-2022-10}
       
       cp app.env.example app.env
-      sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
-      sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
       sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
       ;;
     *)
@@ -478,7 +472,7 @@ push() {
 
                 git fetch origin
                 commits=$(git log origin/$current_branch..$current_branch --oneline)
-                if [ -n "$commits" ]; then;
+                if [ -n "$commits" ]; then
                     git push origin $current_branch
                     echo "${Green}SUCCESS: Push to branch ${current_branch^^} ${Color_Off}"
                     echo "$commits" | awk '{print NR". "$0}'
