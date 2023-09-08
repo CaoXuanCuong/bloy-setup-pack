@@ -45,16 +45,6 @@ fi
 source app.env
 source /usr/share/.shell_env
 
-if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
-    echo "ERROR: SHOPIFY_API_KEY is not set"
-    exit 1
-fi
-
-if [ -z "$SHOPIFY_API_SECRET_KEY" ] || [ "$SHOPIFY_API_SECRET_KEY" == "<SHOPIFY_API_SECRET_KEY>" ]; then
-    echo "ERROR: SHOPIFY_API_SECRET_KEY is not set"
-    exit 1
-fi
-
 if [ -z "$API_VERSION" ] || [ "$API_VERSION" == "<API_VERSION>" ]; then
     echo "ERROR: API_VERSION is not set"
     exit 1
