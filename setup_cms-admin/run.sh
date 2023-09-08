@@ -223,7 +223,7 @@ init_db_single() {
 }
 
 post_setup() {
-    # do nothing
+    echo "SKIP: No post setup needed"
 }
 
 start() {
