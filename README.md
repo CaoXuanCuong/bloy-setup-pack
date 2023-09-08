@@ -93,6 +93,8 @@ Apps which are supported by this script:
 - Product Options: `option`
 - Store Locator: `locator`
 - Mida Recording: `mida`
+- Subscription & Membership: `sub`
+- Shopify CMS Admin Management: `cms-admin`
 
 Steps to setup development project:
 
