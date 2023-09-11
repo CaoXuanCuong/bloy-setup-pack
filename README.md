@@ -144,6 +144,7 @@ To use the app script, execute it using the following command:
 - `commit`: Commit code for all repo
 - `push`: Push code for all repo
 - `update_db`: Run migrate database for all microservices (b2b only)
+- `update`: Auto pull code, install packages, run migrate database for all microservices (b2b only)
 
 
 Options:

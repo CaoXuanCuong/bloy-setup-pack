@@ -506,6 +506,13 @@ push() {
     done
 }
 
+update() {
+    (pull)
+    (install_packages)
+    (update_db)
+    (restart)
+}
+
 case ${option} in
 init)
     init_code
@@ -606,6 +613,9 @@ commit)
 push)
     push
     ;;
+update)
+    update
+    ;;
 *)
     echo "./.sh <option>"
     echo "option:"
@@ -631,6 +641,7 @@ push)
     echo "   check_branch : check current branch for all repo"
     echo "   commit     : commit code for all repo"
     echo "   push       : push code for all repo"
+    echo "   update     : pull, install_packages, update_db, restart"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac
