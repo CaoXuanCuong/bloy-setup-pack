@@ -127,6 +127,7 @@ setup_env() {
 
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
     sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
+    sed -i "s/<PUBLIC_API_PORT>/$PUBLIC_API_PORT/g" "${env_files[@]}"
     
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
@@ -154,6 +155,7 @@ setup_env_single() {
     
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
+    sed -i "s/<PUBLIC_API_PORT>/$PUBLIC_API_PORT/g" $1.env
 
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" $1.env
     
