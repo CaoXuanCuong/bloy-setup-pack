@@ -16,9 +16,10 @@ If you need help, contact devops team to assist you
 
 2.1. Setup SSH key for Bitbucket
 
-Run this script and put the public key to your bitbucket account
+Run this script, enter your email and put the public key to your bitbucket account
     
 ```bash
+cat <<EOF > setup_ssh_key.sh
 if [ -f ~/.ssh/bss-wsl ]; then
   echo "SSH key is already exist"
   exit 0
@@ -34,16 +35,18 @@ if [ ! -f ~/.ssh/config ]; then
   touch ~/.ssh/config
 fi
 
-cat <<EOF >> ~/.ssh/config
+cat <<EOF2 >> ~/.ssh/config
 Host bitbucket.org
   AddKeysToAgent yes
   IdentityFile ~/.ssh/bss-wsl
-EOF
+EOF2
 
 echo "Please copy the following public key to your bitbucket account"
 tput setaf 6
 cat ~/.ssh/bss-wsl.pub
 tput sgr0
+EOF
+bash setup_ssh_key.sh
 ```
 
 2.2. Clone project
