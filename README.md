@@ -146,6 +146,7 @@ To use the app script, execute it using the following command:
 - `check_branch`: Check current branch for all repo
 - `commit`: Commit code for all repo
 - `push`: Push code for all repo
+- `show_domain`: Show list domain
 - `update_db`: Run migrate database for all microservices (b2b only)
 - `update`: Auto pull code, install packages, run migrate database for all microservices (b2b only)
 
