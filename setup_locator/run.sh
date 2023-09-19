@@ -483,6 +483,19 @@ push() {
     done
 }
 
+show_domain() {
+    if [ ! -f "domain_list_template" ]; then
+        echo "ERROR: domain_list_template is not exist"
+        exit 1
+    fi
+
+    while IFS= read -r line; do
+        unfomatted_domain=$(echo $line | cut -d':' -f1)
+        domain=$(echo $unfomatted_domain | sed "s/<n>/$DEV_SITE/g" | sed "s/<zonename>/$CF_ZONE_NAME/g" | sed "s/^/https:\/\//g")
+        echo $domain
+    done < domain_list_template
+}
+
 case ${option} in
 init)
     init_code
@@ -503,11 +516,9 @@ install)
     init_db
     post_setup
     start
-    (
-        cd $DESTINATION_FOLDER
-        source cms.env
-        echo -e "\e[32mCMS URL: $HOST\e[0m"
-    )
+    
+    echo "DONE: installed all services"
+    show_domain
     ;;
 init_db)
     init_db
@@ -587,6 +598,9 @@ commit)
 push)
     push
     ;;
+show_domain)
+    show_domain
+    ;;
 *)
     echo "./.sh <option>"
     echo "option:"
@@ -610,6 +624,7 @@ push)
     echo "   check_branch : check current branch for all repo"
     echo "   commit     : commit code for all repo"
     echo "   push       : push code for all repo"
+    echo "   show_domain: show domain list"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac

@@ -153,6 +153,7 @@ To use the app script, execute it using the following command:
 Options:
 - `-p`: Prompt to recreate script env
 
+
 ## 6. Post installing
 
 6.1. Install fonts
@@ -167,6 +168,39 @@ Open wsl or linux terminal, type in:
 ```bash
 p10k configure
 ```
+
+## 7. Configure app on Shopify Partner (For new app only)
+
+Go to `Apps` section on `Shopify Partner`, find your app and go to `App setup` section
+- Replace `App URL` match your app domain  (run `<appname> show_domain` to show list domain or check your domain name in app folder env files [Eg: BSS/<app_folder>/cms.env] or shopify-dev-setup-pack/domain_list) | Ex: https://dev-b2b-solution-n.dev-bsscommerce.com
+
+- Replace `Allowed redirection URL(s)`: | Ex: https://dev-b2b-solution-n.dev-bsscommerce.com/auth/callback
+
+![Alt text](./images/appurl.png)
+
+- Change `Event subscriptions` Event Version to match your API Version
+
+![Alt text](./images/apiversion.png)
+
+- Disable Embedded setting at `Embedded app` app section if you are installing standalone app (b2b, bcp, login, mida, bloop, subcription)
+
+![Alt text](./images/embedded.png)
+
+- Configure `APP Proxy` if needed (for app B2B Customer Portal, Login Access Management) 
+
+![Alt text](./images/appproxy.png)
+
+Go to `API Access` section -> `Protected customer data access` -> Click on `Manage`
+
+- At the first section `Select your data use and reasons`, there are 5 subsection, click Show -> Select on every section, then tick on every tickbox to allow permission (except `Other`)
+
+![Alt text](./images/protect1.png)
+
+- At the second section `Provide your data protection details`, click on `Provide details` -> Tick yes on every radio button
+
+![Alt text](./images/protect2.png)
+
+- Click save to save all changes
 
 
 
