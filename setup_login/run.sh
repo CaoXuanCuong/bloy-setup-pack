@@ -9,6 +9,8 @@ if [ -L "$0" ]; then
 fi
 cd $app_script_dir
 
+source ../core/config.sh
+
 while getopts ":p" opt; do
     case $opt in
     p)
