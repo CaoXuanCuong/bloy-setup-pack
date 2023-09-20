@@ -10,7 +10,7 @@ export Purple=$(tput setaf 5) # Purple
 export Cyan=$(tput setaf 6)   # Cyan
 
 if [[ $EUID -ne 0 ]]; then
-  echo "${Red}******** Permission denied, please run with sudo ********${Color_Off}"
+  echo "${Red}-------- Permission denied, please run with sudo --------${Color_Off}"
   exit 1
 fi
 
@@ -41,7 +41,7 @@ for arg in "$@"; do
 done
 
 if [ ! -f "script.env" ]; then
-  echo "${Green}******** Create script.env file ********${Color_Off}"
+  echo "${Green}-------- Create script.env file --------${Color_Off}"
 
   echo -n "${Cyan} Enter your USERNAME (Ex: tuannm): ${Color_Off}"
   read -r USERNAME
@@ -59,21 +59,21 @@ source config
 
 if [[ "$DEV_SITE" == "<DEV_SITE_ID>" || "$USERNAME" == "<USERNAME>" ]]; then
   rm -f script.env
-  echo "${Red} ******** Please update environment variable ********${Color_Off}"
+  echo "${Red} -------- Please update environment variable --------${Color_Off}"
   exit 1
 fi
 
 if [[ -z "$DEV_SITE" ]] || ! [[ "$DEV_SITE" =~ ^[a-zA-Z0-9-]+$ ]]; then
   rm -f script.env
   echo "ERROR: DEV_SITE is empty or contains non-alphanumeric characters"
-  echo "${Red} ******** Please update environment variable ********${Color_Off}"
+  echo "${Red} -------- Please update environment variable --------${Color_Off}"
   exit 1
 fi
 
 if [[ -z "$USERNAME" ]] || ! [[ "$USERNAME" =~ ^[a-zA-Z0-9-]+$ ]]; then
   rm -f script.env
   echo "ERROR: USERNAME is empty or contains non-alphanumeric characters"
-  echo "${Red} ******** Please update environment variable ********${Color_Off}"
+  echo "${Red} -------- Please update environment variable --------${Color_Off}"
   exit 1
 fi
 
@@ -85,16 +85,16 @@ IS_WSL=$(uname -a | grep -i microsoft)
 # check if systemd is enabled
 function check_systemd_enabled() {
   if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Skipping check systemd ********${Color_Off}"
+    echo "${Red}-------- Skipping check systemd --------${Color_Off}"
     return;
   fi
   if [[ $(systemctl is-system-running) == "offline" ]]; then
-    echo "${Red}******** Systemd is not enabled ********${Color_Off}"
+    echo "${Red}-------- Systemd is not enabled --------${Color_Off}"
     tee /etc/wsl.conf <<EOF
 [boot]
 systemd=true
 EOF
-    echo "${Red}********Please restart wsl by opening window powershell and run command: wsl.exe --shutdown********${Color_Off}"
+    echo "${Red}--------Please restart wsl by opening window powershell and run command: wsl.exe --shutdown--------${Color_Off}"
     exit 1
   fi
 }
@@ -112,7 +112,7 @@ fi
 chmod a+rwx $script_dir
 
 function setup_symlink() {
-  echo "${Green}******** Setup symlink to scripts ********${Color_Off}"
+  echo "${Green}-------- Setup symlink to scripts --------${Color_Off}"
   chmod a+rwx $script_dir/local_setup.sh
   ln -sf $script_dir/local_setup.sh /usr/local/bin/local_setup
 
@@ -139,24 +139,24 @@ function install_dependencies() {
     openssh-server
   )
 
-  echo "${Green}******** Installing required packages ********${Color_Off}"
+  echo "${Green}-------- Installing required packages --------${Color_Off}"
   nala update
   nala install -y ${packages[@]}
 
   if command -v mysql &>/dev/null; then
-    echo "${Green} ******** Disable mysql service ********${Color_Off}"
+    echo "${Green} -------- Disable mysql service --------${Color_Off}"
     systemctl stop mysql
     systemctl disable mysql
   fi
 
   if command -v redis-server &>/dev/null; then
-    echo "${Green} ******** Disable redis service ********${Color_Off}"
+    echo "${Green} -------- Disable redis service --------${Color_Off}"
     systemctl stop redis-server
     systemctl disable redis-server
   fi
 
   if ! docker info &>/dev/null; then
-    echo "${Green} ******** Installing docker, do not terminate ********${Color_Off}"
+    echo "${Green} -------- Installing docker, do not terminate --------${Color_Off}"
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
     rm -f get-docker.sh
@@ -168,14 +168,14 @@ function install_dependencies() {
   nala install docker-compose-plugin
 
   if ! grep -q docker /etc/group; then
-    echo "${Green} ******** Create docker group ********${Color_Off}"
+    echo "${Green} -------- Create docker group --------${Color_Off}"
     groupadd docker
   fi
   usermod -aG docker $SUDO_USER
 
   for tool in "${tools[@]}"; do
     if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
-      echo "${Green} ******** Installing $tool container...********${Color_Off}"
+      echo "${Green} -------- Installing $tool container...--------${Color_Off}"
       cp tools/$tool/.env.example tools/$tool/.env
       docker compose -f tools/$tool/docker-compose.yml up -d --force-recreate
     fi
@@ -190,7 +190,7 @@ function install_node() {
     return
   fi
 
-  echo "${Green}********Install nvm and node 16.20.1********${Color_Off}"
+  echo "${Green}--------Install nvm and node 16.20.1--------${Color_Off}"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 
   if ! grep -q "export NVM_DIR" ~/.zshrc; then
@@ -221,16 +221,16 @@ EOF
 }
 
 function setup_tailscale() {
-  echo "${Red}********WARNING: for workplace devices only********${Color_Off}"
-  echo "${Red}********do not install on your personal devices********${Color_Off}"
-  echo "${Red}********setup_tailscale will give root access to your WSL machine********${Color_Off}"
+  echo "${Red}--------WARNING: for workplace devices only--------${Color_Off}"
+  echo "${Red}--------do not install on your personal devices--------${Color_Off}"
+  echo "${Red}--------setup_tailscale will give root access to your WSL machine--------${Color_Off}"
   read -p "Continue? (y/n): choose y if this is a workplace device " -n 1 -r
   echo
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
   fi
 
-  echo "${Green}********Installing tailscale********${Color_Off}"
+  echo "${Green}--------Installing tailscale--------${Color_Off}"
   # check if tailscale is installed
   if ! command -v tailscale &>/dev/null; then
     curl -fsSL https://tailscale.com/install.sh | sh
@@ -240,21 +240,21 @@ function setup_tailscale() {
 
 function config_os() {
   if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Skipping config os ********${Color_Off}"
+    echo "${Red}-------- Skipping config os --------${Color_Off}"
     return;
   fi
   # config sudo nopasswd
-  echo "${Green}********Config sudo nopasswd********${Color_Off}"
+  echo "${Green}--------Config sudo nopasswd--------${Color_Off}"
   sed -i -E 's,^%sudo.*$,%sudo ALL=(ALL:ALL) NOPASSWD:ALL,g' /etc/sudoers
 
-  echo "${Green}********Change hostname to $USERNAME********${Color_Off}"
+  echo "${Green}--------Change hostname to $USERNAME--------${Color_Off}"
   hostnamectl set-hostname $USERNAME
   sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$USERNAME/g" /etc/hosts
 }
 
 function config_ssh() {
   if [[ $IS_WSL == "" ]]; then
-    echo "${Red}******** Skipping config ssh ********${Color_Off}"
+    echo "${Red}-------- Skipping config ssh --------${Color_Off}"
     return;
   fi
 
@@ -273,19 +273,19 @@ function setup_shell() {
     return
   fi
 
-  echo "${Green}********Configuring shell********${Color_Off}"
+  echo "${Green}--------Configuring shell--------${Color_Off}"
 
   sudo sed s/required/sufficient/g -i /etc/pam.d/chsh
   # clean files
   rm -rf /usr/share/oh-my-zsh/zshrc /usr/share/oh-my-zsh /usr/share/p10k.zsh /usr/share/.dir_colors
 
   # install zsh and oh-my-zsh
-  echo "${Green}********Installing zsh and oh-my-zsh********${Color_Off}"
+  echo "${Green}--------Installing zsh and oh-my-zsh--------${Color_Off}"
   nala install -y zsh
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
   # install plugins
-  echo "${Green}********Installing zsh plugins********${Color_Off}"
+  echo "${Green}--------Installing zsh plugins--------${Color_Off}"
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
   git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
   git clone https://github.com/zsh-users/zsh-history-substring-search ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-history-substring-search
@@ -293,7 +293,7 @@ function setup_shell() {
   sed -i -E 's,^plugins=\(.*$,plugins=(git zsh-syntax-highlighting zsh-autosuggestions zsh-history-substring-search z nvm),g' ~/.zshrc
 
   # install powerlevel10k theme
-  echo "${Green}********Installing powerlevel10k theme********${Color_Off}"
+  echo "${Green}--------Installing powerlevel10k theme--------${Color_Off}"
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
   sed -i -E 's,^ZSH_THEME=.*$,ZSH_THEME="powerlevel10k/powerlevel10k",g' ~/.zshrc
   sed -i 's/# ENABLE_CORRECTION="true"/ENABLE_CORRECTION="true"/g' ~/.zshrc
@@ -330,7 +330,7 @@ EOF
 }
 
 function config_env() {
-  echo "${Green}******** Configuring environment variables ********${Color_Off}"
+  echo "${Green}-------- Configuring environment variables --------${Color_Off}"
   cp config shell_env_temp
   echo "DEV_SITE=$DEV_SITE" >> shell_env_temp
   echo "CF_ZONE_NAME=$CF_ZONE_NAME" >> shell_env_temp
@@ -363,21 +363,23 @@ function setup_visualize() {
   bash $script_dir/setup_visualize.sh
 }
 
-function pull() {
+function update() {
   (
-    echo "${Green}******** Updating script ********${Color_Off}"
+    echo "${Green}-------- Updating script --------${Color_Off}"
     cd $script_dir
     sudo -u $SUDO_USER git pull
+    setup_symlink
+    echo "${Green}SUCCESS: Update script successfully${Color_Off}"
   )
 }
 
 function init() {
-  echo "${Green}********Starting setup********${Color_Off}"
+  echo "${Green}--------Starting setup--------${Color_Off}"
 
   if [[ $IS_WSL == "" ]]; then
-    echo "${Yellow}******** This is not a WSL machine, some steps will be skipped ********${Color_Off}"
+    echo "${Yellow}-------- This is not a WSL machine, some steps will be skipped --------${Color_Off}"
   else
-    echo "${Green}******** This is a WSL machine ********${Color_Off}"
+    echo "${Green}-------- This is a WSL machine --------${Color_Off}"
   fi
   
   check_systemd_enabled
@@ -421,7 +423,7 @@ function restart_container() {
 function restart_container_single() {
   tool=$1
   if [[ $FORCE_INSTALL == true ]] || [[ $(docker ps -q -f name=$tool) == "" ]]; then
-    echo "${Green} ******** Installing $tool container...********${Color_Off}"
+    echo "${Green} -------- Installing $tool container...--------${Color_Off}"
     cp tools/$tool/.env.example tools/$tool/.env
   else
     echo "${Cyan}----- Restarting $tool container... ------${Color_Off}"
@@ -518,8 +520,8 @@ setup_app_tunnel)
 setup_visualize)
   setup_visualize
   ;;
-pull)
-  pull
+update)
+  update
   ;;
 install)
   install ${ARGS[1]}

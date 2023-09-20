@@ -14,7 +14,7 @@ source ../core/config.sh
 while getopts ":p" opt; do
     case $opt in
     p)
-        echo "${Green}******** Enter app environment. ********${Color_Off}"
+        echo "${Green}-------- Enter app environment. --------${Color_Off}"
         read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
 
         read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
@@ -28,7 +28,7 @@ while getopts ":p" opt; do
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
         ;;
     *)
-        echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
+        echo "${Red}-------- Invalid option: -$OPTARG --------${Color_Off}" >&2
         exit 1
         ;;
     esac

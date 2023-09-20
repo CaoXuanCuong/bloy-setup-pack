@@ -18,7 +18,7 @@ source ../core/config.sh
 while getopts ":p" opt; do
     case $opt in
     p)
-        echo "${Green}******** Enter app environment. ********${Color_Off}"
+        echo "${Green}-------- Enter app environment. --------${Color_Off}"
         read -p "API_VERSION (Default: 2022-10): " API_VERSION
         API_VERSION=${API_VERSION:-2022-10}
 
@@ -26,7 +26,7 @@ while getopts ":p" opt; do
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
         ;;
     *)
-        echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
+        echo "${Red}-------- Invalid option: -$OPTARG --------${Color_Off}" >&2
         exit 1
         ;;
     esac
