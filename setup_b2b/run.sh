@@ -9,7 +9,8 @@ if [ -L "$0" ]; then
 fi
 cd $app_script_dir
 
-source $HOME/.nvm/nvm.sh
+# execute config script 
+source ../core/config.sh
 
 while getopts ":p" opt; do
   case $opt in
@@ -39,13 +40,7 @@ if [ ! -f "app.env" ]; then
     exit 1
 fi
 
-if ! command -v npm &>/dev/null; then
-    echo "ERROR: npm is not installed"
-    exit 1
-fi
-
 source app.env
-source /usr/share/.shell_env
 
 if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
     echo "ERROR: SHOPIFY_API_KEY is not set"
@@ -62,7 +57,6 @@ if [ -z "$API_VERSION" ] || [ "$API_VERSION" == "<API_VERSION>" ]; then
     exit 1
 fi
 
-corepack enable
 mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
@@ -436,7 +430,7 @@ check_branch() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
             fi
         )
     done
@@ -450,15 +444,15 @@ commit() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
                     echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
                     echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
                     read message
-                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                    if [ -n "$message" ]; then
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
@@ -479,15 +473,15 @@ push() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
                     echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
                     echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
                     read message
-                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                    if [ -n "$message" ]; then
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
@@ -508,6 +502,76 @@ push() {
     done
 }
 
+check_out() {
+    if [ -z "$1" ]; then
+        echo "Usage: ./.sh check_out <branch name>"
+        exit 1
+    fi
+
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            if [ -d ".git" ]; then
+                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                
+                if [ "$current_branch" == "$1" ]; then
+                    echo "${Green}INFO: Already on branch $1 ${Color_Off}"
+                    exit
+                fi
+
+                git fetch origin
+                git branch -r | grep -q origin/$1
+                if [ $? -ne 0 ]; then
+                    echo "${Red}WARNING: Branch $1 is not exist ${Color_Off}"
+                    echo "${Cyan}Do you want to create new branch $1 from $current_branch? (y/n)${Color_Off}" 
+                    read -r answer
+                    if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
+                        git branch -m $1
+                        echo "${Green}SUCCESS: Checkout to branch $1 ${Color_Off}"
+                    fi
+                    exit
+                fi
+
+                # detect if there are uncommitted changes
+                UNCOMMITTED=$(git status --porcelain)
+                if [ -n "$UNCOMMITTED" ]; then
+                    echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
+                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
+                    echo "${Cyan}Take action (commit, stash, or skip this branch) before checkout:${Color_Off}"
+                    echo "  leave blank - skip this branch"
+                    echo "  c - commit changes"
+                    echo "  s - stash changes"
+                    echo "  q - quit"
+                    read action
+                    if [ -n "$action" ]; then
+                        if [ "$action" == "c" ]; then
+                            echo "${Cyan}Enter commit message:${Color_Off}"
+                            read message
+                            if [ -n "$message" ]; then
+                                git add .
+                                git commit -m "$message"
+                                echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                            fi
+                        elif [ "$action" == "s" ]; then
+                            git stash
+                            echo "${Green}SUCCESS: Stash changes ${Color_Off}"
+                        elif [ "$action" == "q" ]; then
+                            exit 1
+                        fi
+                    fi
+
+                    
+                fi
+
+
+            fi
+        )
+    done
+}
+
 update() {
     (pull)
     (install_packages)
@@ -516,8 +580,6 @@ update() {
 }
 
 show_domain() {
-    cd $DESTINATION_FOLDER
-    
     if [ ! -f "domain_list_template" ]; then
         echo "ERROR: domain_list_template is not exist"
         exit 1

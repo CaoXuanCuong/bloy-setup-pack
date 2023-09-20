@@ -393,7 +393,7 @@ check_branch() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
             fi
         )
     done
@@ -407,15 +407,15 @@ commit() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
                     echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
                     echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
                     read message
-                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                    if [ -n "$message" ]; then
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
@@ -436,15 +436,15 @@ push() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo "${Green} ${DIRECTORY^^} branch ${current_branch^^} ${Color_Off}"
+                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
                     echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
                     echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (type 'skip' or 's' to skip):${Color_Off}"
+                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
                     read message
-                    if [ "$message" != "skip" ] && [ "$message" != "s" ]; then
+                    if [ -n "$message" ]; then
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
