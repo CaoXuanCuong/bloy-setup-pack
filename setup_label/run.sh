@@ -380,7 +380,7 @@ install)
     post_setup
 
     echo "DONE: installed all services"
-    show_domain
+    b2b domain
     ;;
 start_single)
     if [ -z "$1" ]; then
