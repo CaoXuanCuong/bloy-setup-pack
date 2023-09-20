@@ -185,9 +185,13 @@ show_domain() {
         exit 1
     fi
 
-    while IFS= read -r line; do
-        unfomatted_domain=$(echo $line | cut -d':' -f1)
-        domain=$(echo $unfomatted_domain | sed "s/<n>/$DEV_SITE/g" | sed "s/<zonename>/$CF_ZONE_NAME/g" | sed "s/^/https:\/\//g")
+    while IFS=: read -r line || [[ -n "$line" ]]; do
+        if [[ -z "$line" || "$line" =~ ^\s*# ]]; then
+            continue
+        fi
+        # Extract record and port
+        record=$(echo "$line" | awk -F':' '{print $1}')
+        domain=$(echo $record | sed "s/<n>/$DEV_SITE/g" | sed "s/<zonename>/$CF_ZONE_NAME/g" | sed "s/^/https:\/\//g")
         echo $domain
     done < domain_list_template
 }

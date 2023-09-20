@@ -363,61 +363,11 @@ function setup_visualize() {
   bash $script_dir/setup_visualize.sh
 }
 
-vercomp() {
-    if [[ $1 == $2 ]]
-    then
-        return 0
-    fi
-    local IFS=.
-    local i ver1=($1) ver2=($2)
-     fill empty fields in ver1 with zeros
-    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
-    do
-        ver1[i]=0
-    done
-    for ((i=0; i<${#ver1[@]}; i++))
-    do
-        if [[ -z ${ver2[i]} ]]
-        then
-            # fill empty fields in ver2 with zeros
-            ver2[i]=0
-        fi
-        if ((10#${ver1[i]} > 10#${ver2[i]}))
-        then
-            return 1
-        fi
-        if ((10#${ver1[i]} < 10#${ver2[i]}))
-        then
-            return 2
-        fi
-    done
-    return 0
-}
-
 function pull() {
   (
     echo "${Green}******** Updating script ********${Color_Off}"
     cd $script_dir
     sudo -u $SUDO_USER git pull
-  )
-}
-
-function version() {
-  (
-    cd $script_dir
-    git fetch origin
-    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2)
-    LATEST_COMMIT=$(git ls-remote origin HEAD | cut -f 1)
-    LASTEST_VERSION=$(git show $LATEST_COMMIT:script.env.example | grep "^VERSION=" | cut -d '=' -f2)
-    echo "Current version: $CURRENT_VERSION"
-    echo "Latest version: $LASTEST_VERSION"
-
-    IS_UP_TO_DATE=$(vercomp $LASTEST_VERSION $CURRENT_VERSION)
-    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
-      echo "${Green}INFO: Up to date ${Color_Off}"
-    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
-      echo "${Green}INFO: New version available. Please run update command to update script ${Color_Off}"
-    fi
   )
 }
 
@@ -477,32 +427,6 @@ function restart_container_single() {
     echo "${Cyan}----- Restarting $tool container... ------${Color_Off}"
   fi
   docker compose -f tools/$tool/docker-compose.yml up -d --force-recreate
-}
-
-function exec_update() {
-  (
-    SCRIPT_VERSION=$(grep "^VERSION=" $script_dir/script.env.example | cut -d '=' -f2)
-    CURRENT_VERSION=$(grep "^VERSION=" $script_dir/script.env | cut -d '=' -f2 || echo "0.0.0")
-    # check equal using vercomp then log up to date
-    IS_UP_TO_DATE=$(vercomp $SCRIPT_VERSION $CURRENT_VERSION)
-    if [[ $IS_UP_TO_DATE -eq 0 ]]; then
-      echo "${Green}INFO: Up to date ${Color_Off}"
-    elif [[ $IS_UP_TO_DATE -eq 1 ]]; then
-      echo "${Green}INFO: Installing updates... ${Color_Off}"
-
-      # compare if current version < 1.0.0 using vercomp
-      if [[ $(vercomp "1.0.0" $CURRENT_VERSION) -eq 1 ]]; then
-        echo "${Green}INFO: Updating to version 1.0.0 ${Color_Off}"
-        # execute init
-        setup_visualize
-        exec $script_dir/local_setup.sh setup_shell -force
-        exec $script_dir/local_setup.sh install_node -force
-      fi
-
-      echo "${Green}INFO: Done updating. Current version: $SCRIPT_VERSION ${Color_Off}"
-      sed -i -E "s,^VERSION=.*$,VERSION=$SCRIPT_VERSION,g" $script_dir/script.env
-    fi
-  )
 }
 
 function post_setup() {
@@ -596,12 +520,6 @@ setup_visualize)
   ;;
 pull)
   pull
-  ;;
-update)
-  exec_update
-  ;;
-version)
-  version
   ;;
 install)
   install ${ARGS[1]}
