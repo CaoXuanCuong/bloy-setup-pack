@@ -4,34 +4,34 @@ shift 1
 
 app_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -L "$0" ]; then
-  script=$(readlink -f "$0")
-  app_script_dir=$(dirname "$script")
+    script=$(readlink -f "$0")
+    app_script_dir=$(dirname "$script")
 fi
 cd $app_script_dir
 
-source $HOME/.nvm/nvm.sh
+source ../core/config.sh
 
 while getopts ":p" opt; do
-  case $opt in
+    case $opt in
     p)
-      echo "${Green}******** Enter app environment. ********${Color_Off}"
-      read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
+        echo "${Green}******** Enter app environment. ********${Color_Off}"
+        read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
 
-      read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
-      
-      read -p "API_VERSION (Default: 2022-10): " API_VERSION
-      API_VERSION=${API_VERSION:-2022-10}
-      
-      cp app.env.example app.env
-      sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
-      sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
-      sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
-      ;;
+        read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
+
+        read -p "API_VERSION (Default: 2022-10): " API_VERSION
+        API_VERSION=${API_VERSION:-2022-10}
+
+        cp app.env.example app.env
+        sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
+        sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
+        sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
+        ;;
     *)
-      echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
-      exit 1
-    ;;
-  esac
+        echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
+        exit 1
+        ;;
+    esac
 done
 
 if [ ! -f "app.env" ]; then
@@ -39,13 +39,7 @@ if [ ! -f "app.env" ]; then
     exit 1
 fi
 
-if ! command -v npm &>/dev/null; then
-    echo "ERROR: npm is not installed"
-    exit 1
-fi
-
 source app.env
-source /usr/share/.shell_env
 
 if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
     echo "ERROR: SHOPIFY_API_KEY is not set"
@@ -112,7 +106,7 @@ setup_env() {
     if [[ "$MONGO_AUTH_ADMIN" == "true" ]]; then
         MONGO_URI="$MONGO_URI&authSource=admin"
     fi
-   
+
     MONGO_URI_ESCAPED=$(printf '%s\n' "$MONGO_URI" | sed -e 's/[\/&]/\\&/g')
 
     RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
@@ -138,7 +132,7 @@ setup_env_single() {
     sed -i "s/<API_VERSION>/$API_VERSION/g" $1.env
     sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" $1.env
     sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" $1.env
-    
+
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     sed -i "s/<HM_PORT>/$HM_PORT/g" $1.env
@@ -155,11 +149,11 @@ setup_env_single() {
 
     RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
     AMQP_URI="$RABBITMQ_USER:$RABBITMQ_PASSWORD_ENCODED@$RABBITMQ_HOST:$RABBITMQ_PORT"
-    
+
     sed -i "s|<MONGO_URI>|$MONGO_URI_ESCAPED|g" "${env_files[@]}"
     sed -i "s|<MONGO_SEED>|$MONGO_SEED|g" $1.env
     sed -i "s|<AMQP_URI>|$AMQP_URI|g" $1.env
-    
+
     update_env_single $1
     echo "DONE: setup env for $1"
 }
@@ -211,7 +205,7 @@ init_code_single() {
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
     echo "init code for $DIRECTORY"
-    cd $DIRECTORY 
+    cd $DIRECTORY
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
     if [ -f "package.json" ]; then
         npm install
@@ -254,7 +248,7 @@ install_dependencies() {
         systemctl stop rabbitmq-server
         systemctl disable rabbitmq-server
     fi
-    
+
     if [ "$(docker ps -q -f name=mongodb)" == "" ]; then
         cp ../tools/mongodb/.env.example ../tools/mongodb/.env
         docker compose -f ../tools/mongodb/docker-compose.yml up -d
@@ -264,7 +258,7 @@ install_dependencies() {
         cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
         docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
         echo "INFO: start rabbitmq container"
-    fi    
+    fi
 }
 
 start() {
@@ -274,7 +268,7 @@ start() {
             source $env_file
             cd "$DIRECTORY"
             # check if process is running
-            pm2 describe $PROCESS_NAME > /dev/null 2>&1
+            pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 echo "# pm2 restart $PROCESS_NAME"
                 pm2 restart $PROCESS_NAME --update-env
@@ -302,7 +296,7 @@ start_single() {
     source $1.env
     cd "$DIRECTORY"
     # check if process is running
-    pm2 describe $PROCESS_NAME > /dev/null 2>&1
+    pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "# pm2 restart $PROCESS_NAME"
         pm2 restart $PROCESS_NAME --update-env
@@ -360,33 +354,6 @@ clean() {
     fi
 }
 
-pull() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd "$DIRECTORY"
-            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo -e "\033[32m\n----------- ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
-
-            git fetch origin
-            OUTPUT=$(git merge --no-commit --no-ff origin/master)
-            
-            if [ $? -eq 0 ]; then
-                if [[ $OUTPUT == *"up to date"* ]]; then
-                    echo -e "\033[32mINFO: Already up to date.\033[0m"
-                    exit
-                fi
-                git commit -m "Merge branch 'master' into $GIT_BRANCH"
-                echo -e "\033[32mSUCCESS: Merge branch 'master' into $GIT_BRANCH\033[0m"
-            else
-                git merge --abort
-                echo -e "\033[31mERROR: Git pull failed, you need to pull and resolve conflicts manually\033[0m"
-            fi
-        )
-    done
-}
-
 install_single() {
     if [ -z "$1" ]; then
         echo "Usage: ./.sh install_single <name>"
@@ -414,99 +381,6 @@ install_packages() {
             fi
         )
     done
-}
-
-check_branch() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd $DIRECTORY
-            if [ -d ".git" ]; then
-                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
-            fi
-        )
-    done
-}
-
-commit() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd $DIRECTORY
-            if [ -d ".git" ]; then
-                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
-                # detect if there are uncommitted changes
-                UNCOMMITTED=$(git status --porcelain)
-                if [ -n "$UNCOMMITTED" ]; then
-                    echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
-                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
-                    read message
-                    if [ -n "$message" ]; then
-                        git add .
-                        git commit -m "$message"
-                        echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
-                    fi
-                fi
-
-            fi
-        )
-    done
-}
-    
-
-push() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd $DIRECTORY
-            if [ -d ".git" ]; then
-                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
-                # detect if there are uncommitted changes
-                UNCOMMITTED=$(git status --porcelain)
-                if [ -n "$UNCOMMITTED" ]; then
-                    echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
-                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Enter commit message (leave blank to skip):${Color_Off}"
-                    read message
-                    if [ -n "$message" ]; then
-                        git add .
-                        git commit -m "$message"
-                        echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
-                    fi
-                fi
-
-                git fetch origin
-                commits=$(git log origin/$current_branch..$current_branch --oneline)
-                if [ -n "$commits" ]; then
-                    git push origin $current_branch
-                    echo "${Green}SUCCESS: Push to branch ${current_branch^^} ${Color_Off}"
-                    echo "$commits" | awk '{print NR". "$0}'
-                else
-                    echo "${Green}INFO: Remote branch already up to date. ${Color_Off}"
-                fi
-            fi
-        )
-    done
-}
-
-show_domain() {
-    if [ ! -f "domain_list_template" ]; then
-        echo "ERROR: domain_list_template is not exist"
-        exit 1
-    fi
-
-    while IFS= read -r line; do
-        unfomatted_domain=$(echo $line | cut -d':' -f1)
-        domain=$(echo $unfomatted_domain | sed "s/<n>/$DEV_SITE/g" | sed "s/<zonename>/$CF_ZONE_NAME/g" | sed "s/^/https:\/\//g")
-        echo $domain
-    done < domain_list_template
 }
 
 case ${option} in
@@ -589,30 +463,16 @@ clean_process)
 clean)
     clean
     ;;
-pull)
-    pull
-    ;;
-check_branch)
-    check_branch
-    ;;
-commit)
-    commit
-    ;;
-push)
-    push
-    ;;
-show_domain)
-    show_domain
-    ;;
 *)
-    echo "./.sh <option>"
-    echo "option:"
+    source ../core/utils.sh
+    if [ $? -eq 0 ]; then
+        exit 0
+    fi
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   install_packages : install packages"
     echo "   init      : setup code for all services"
     echo "   init_single <name> : setup code for single service"
-    echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"
     echo "   update_env : update cms, api .env file"
@@ -621,11 +481,6 @@ show_domain)
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"
-    echo "   pull       : pull code for all repo"
-    echo "   check_branch : check current branch for all repo"
-    echo "   commit     : commit code for all repo"
-    echo "   push       : push code for all repo"
-    echo "   show_domain: show domain list"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac

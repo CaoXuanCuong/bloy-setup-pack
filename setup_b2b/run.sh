@@ -4,35 +4,34 @@ shift 1
 
 app_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -L "$0" ]; then
-  script=$(readlink -f "$0")
-  app_script_dir=$(dirname "$script")
+    script=$(readlink -f "$0")
+    app_script_dir=$(dirname "$script")
 fi
 cd $app_script_dir
 
-# execute config script 
 source ../core/config.sh
 
 while getopts ":p" opt; do
-  case $opt in
+    case $opt in
     p)
-      echo "${Green}******** Enter app environment. ********${Color_Off}"
-      read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
+        echo "${Green}******** Enter app environment. ********${Color_Off}"
+        read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
 
-      read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
-      
-      read -p "API_VERSION (Default: 2022-10): " API_VERSION
-      API_VERSION=${API_VERSION:-2022-10}
-      
-      cp app.env.example app.env
-      sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
-      sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
-      sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
-      ;;
+        read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
+
+        read -p "API_VERSION (Default: 2022-10): " API_VERSION
+        API_VERSION=${API_VERSION:-2022-10}
+
+        cp app.env.example app.env
+        sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
+        sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
+        sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
+        ;;
     *)
-      echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
-      exit 1
-    ;;
-  esac
+        echo "${Red}******** Invalid option: -$OPTARG ********${Color_Off}" >&2
+        exit 1
+        ;;
+    esac
 done
 
 if [ ! -f "app.env" ]; then
@@ -122,7 +121,7 @@ setup_env() {
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
     sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
     sed -i "s/<PUBLIC_API_PORT>/$PUBLIC_API_PORT/g" "${env_files[@]}"
-    
+
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
     update_env
@@ -146,13 +145,13 @@ setup_env_single() {
     sed -i "s/<DB_PORT>/$DB_PORT/g" $1.env
     sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" $1.env
     sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" $1.env
-    
+
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     sed -i "s/<PUBLIC_API_PORT>/$PUBLIC_API_PORT/g" $1.env
 
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" $1.env
-    
+
     update_env_single $1
     echo "DONE: setup env for $1"
 }
@@ -267,7 +266,7 @@ start() {
             source $env_file
             cd "$DIRECTORY"
             # check if process is running
-            pm2 describe $PROCESS_NAME > /dev/null 2>&1
+            pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 echo "# pm2 restart $PROCESS_NAME"
                 pm2 restart $PROCESS_NAME --update-env
@@ -292,7 +291,7 @@ start_single() {
     source $1.env
     cd "$DIRECTORY"
     # check if process is running
-    pm2 describe $PROCESS_NAME > /dev/null 2>&1
+    pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
         echo "# pm2 restart $PROCESS_NAME"
         pm2 restart $PROCESS_NAME --update-env
@@ -381,7 +380,7 @@ start_production() {
             cd "$DIRECTORY"
 
             if [ ! -f "package.json" ]; then
-                    exit
+                exit
             fi
             if [ $env_file == "cms.env" ] || [ $env_file == "proxy.env" ]; then
                 npm run build
@@ -503,7 +502,6 @@ clean)
     echo "   install_packages : install packages"
     echo "   init      : setup code for all services"
     echo "   init_single <name> : setup code for single service"
-    echo "   clean      : delete all code cms,api,proxy,...."
     echo "   setup_env  : setup env for all services"
     echo "   setup_env_single <name> : setup single env file"
     echo "   update_env : update cms, api .env file"
