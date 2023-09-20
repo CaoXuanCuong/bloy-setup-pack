@@ -402,8 +402,6 @@ update() {
     (restart)
 }
 
-source ../core/main.sh
-
 case ${option} in
 init)
     init_code
@@ -495,27 +493,11 @@ clean_process)
 clean)
     clean
     ;;
-pull)
-    pull
-    ;;
-check_branch)
-    check_branch
-    ;;
-commit)
-    commit
-    ;;
-push)
-    push
-    ;;
-update)
-    update
-    ;;
-show_domain)
-    show_domain
-    ;;
 *)
-    echo "./.sh <option>"
-    echo "option:"
+    source ../core/utils.sh
+    if [ $? -eq 0 ]; then
+        exit 0
+    fi
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   install_packages : install packages"
@@ -534,12 +516,6 @@ show_domain)
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"
-    echo "   pull       : pull code for all repo"
-    echo "   check_branch : check current branch for all repo"
-    echo "   commit     : commit code for all repo"
-    echo "   push       : push code for all repo"
-    echo "   update     : pull, install_packages, update_db, restart"
-    echo "   show_domain: show domain list"
     exit 1 # Command to come out of the program with status 1
     ;;
 esac

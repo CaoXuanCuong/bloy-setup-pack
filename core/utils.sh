@@ -182,8 +182,42 @@ show_domain() {
     fi
 
     while IFS= read -r line; do
-        unfomatted_domain=$(echo $line | cut -d':' -f2)
+        unfomatted_domain=$(echo $line | cut -d':' -f1)
         domain=$(echo $unfomatted_domain | sed "s/<n>/$DEV_SITE/g" | sed "s/<zonename>/$CF_ZONE_NAME/g" | sed "s/^/https:\/\//g")
         echo $domain
     done < domain_list_template
 }
+
+case ${option} in
+"pull")
+    pull
+    ;;
+"commit")
+    commit
+    ;;
+"push")
+    push
+    ;;
+"checkout")
+    check_out $2
+    ;;
+"branch")
+    check_branch
+    ;;
+"domain")
+    show_domain
+    ;;
+*)
+    echo "Usage: ./.sh <option>"
+    echo "options:"
+    echo "  pull        : pull changes from master branch"
+    echo "  commit      : commit changes to current branch"
+    echo "  push        : push changes to current branch"
+    echo "  checkout    : checkout to branch"
+    echo "  branch      : show current branch"
+    echo "  domain      : show domain list"
+    exit 1
+    ;;
+esac
+
+exit 0
