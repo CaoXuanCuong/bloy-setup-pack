@@ -14,7 +14,6 @@ export Light_Purple=$(tput setaf 13) # Light Purple
 export Light_Cyan=$(tput setaf 14)   # Light Cyan
 export White=$(tput setaf 15)        # White
 
-source /usr/share/.shell_env
 source $HOME/.nvm/nvm.sh
 
 if ! command -v npm &>/dev/null; then

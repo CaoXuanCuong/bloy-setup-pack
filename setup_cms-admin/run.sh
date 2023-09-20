@@ -13,8 +13,6 @@ if [ -L "$0" ]; then
 fi
 cd $app_script_dir
 
-source ../core/config.sh
-
 while getopts ":p" opt; do
     case $opt in
     p)
@@ -38,6 +36,7 @@ if [ ! -f "app.env" ]; then
 fi
 
 source app.env
+source /usr/share/.shell_env
 
 if [ -z "$API_VERSION" ] || [ "$API_VERSION" == "<API_VERSION>" ]; then
     echo "ERROR: API_VERSION is not set"
