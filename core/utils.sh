@@ -188,6 +188,8 @@ show_domain() {
     done < domain_list_template
 }
 
+is_option=true
+
 case ${option} in
 "pull")
     pull
@@ -208,15 +210,14 @@ case ${option} in
     show_domain
     ;;
 *)
+    is_option=false
     echo "Usage: ./.sh <option>"
     echo "options:"
-    echo "  pull        : pull changes from master branch"
-    echo "  commit      : commit changes to current branch"
-    echo "  push        : push changes to current branch"
-    echo "  checkout    : checkout to branch"
-    echo "  branch      : show current branch"
-    echo "  domain      : show domain list"
+    echo "   pull        : pull changes from master branch"
+    echo "   commit      : commit changes to current branch"
+    echo "   push        : push changes to current branch"
+    echo "   checkout    : checkout to branch"
+    echo "   branch      : show current branch"
+    echo "   domain      : show domain list"
     ;;
 esac
-
-exit 0

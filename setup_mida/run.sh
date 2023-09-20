@@ -465,8 +465,8 @@ clean)
     ;;
 *)
     source ../core/utils.sh
-    if [ $? -eq 0 ]; then
-        exit 0
+    if [ $is_option == true ]; then
+        exit 1
     fi
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"

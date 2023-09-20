@@ -143,10 +143,11 @@ To use the app script, execute it using the following command:
 - `clean_process`: Delete app processes
 - `clean`: Delete app source code and processes
 - `pull`: Pull latest source code from origin master 
-- `check_branch`: Check current branch for all repo
+- `branch`: Check current branch for all repo
 - `commit`: Commit code for all repo
 - `push`: Push code for all repo
-- `show_domain`: Show list domain
+- `checkout`: Checkout branch for all repo
+- `domain`: Show list domain
 - `update_db`: Run migrate database for all microservices (b2b only)
 - `update`: Auto pull code, install packages, run migrate database for all microservices (b2b only)
 
