@@ -106,11 +106,53 @@ push() {
     done
 }
 
-check_out() {
-    if [ -z "$1" ]; then
-        echo "Usage: ./.sh check_out <branch name>"
+checkout() {
+
+    print_usage() {
+        echo "Usage: ./.sh checkout <branch name> <option>"
+        echo "options:"
+        echo "   -k | --skip   : stay on current branch if there are changes (default)"
+        echo "   -c | --commit : commit changes to current branch before checkout"
+        echo "   -s | --stash  : stash changes to current branch before checkout"
+        echo "   -n | --new    : ask to create new branch if target branch is not exist"
         exit 1
+    }
+
+    if [ -z "$1" ]; then
+        print_usage
     fi
+    target_branch=$1
+    shift
+
+    action="skip"
+    ask_new_branch=false
+
+    while [[ $# -gt 0 ]]; do
+        key="$1"
+        case $key in
+        -k | --skip)
+            action="skip"
+            shift
+            ;;
+        -c | --commit)
+            action="commit"
+            shift
+            ;;
+        -s | --stash)
+            action="stash"
+            shift
+            ;;
+        -n | --new)
+            ask_new_branch=true
+            shift
+            ;;
+        *)
+            echo "ERROR: Invalid option $key"
+            print_usage
+            exit 1
+            ;;
+        esac
+    done
 
     for env_file in "${env_files[@]}"; do
         (
@@ -119,7 +161,6 @@ check_out() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                target_branch=$1
                 echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} checkout branch ${current_branch^^} --> ${target_branch^^} ----------${Color_Off}"
                 
                 if [ "$current_branch" == "$target_branch" ]; then
@@ -131,15 +172,9 @@ check_out() {
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
                     echo "${Yellow}INFO: You have uncommitted changes ${Color_Off}"
-                    echo "$UNCOMMITTED" | awk '{print NR". "$0}'
-                    echo "${Cyan}Take action (commit, stash, or skip this branch) before checkout:${Color_Off}"
-                    echo "  leave blank - skip this branch"
-                    echo "  c - commit changes"
-                    echo "  s - stash changes"
-                    echo "  q - quit"
-                    read action
+                    echo "${Red}$UNCOMMITTED${Color_Off}" | awk '{print $0}'
                     if [ -n "$action" ]; then
-                        if [ "$action" == "c" ]; then
+                        if [ "$action" == "commit" ]; then
                             echo "${Cyan}Enter commit message:${Color_Off}"
                             read message
                             if [ -n "$message" ]; then
@@ -147,33 +182,39 @@ check_out() {
                                 git commit -m "$message"
                                 echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
                             fi
-                        elif [ "$action" == "s" ]; then
+                        elif [ "$action" == "stash" ]; then
                             git stash
-                            echo "${Green}SUCCESS: Stash changes ${Color_Off}"
-                        elif [ "$action" == "q" ]; then
-                            exit 1
+                            echo "${Green}SUCCESS: Stash changes ${current_branch^^} ${Color_Off}"
+                        elif [ "$action" == "skip" ]; then
+                            echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                            exit
                         fi
                     fi
-
-                    
                 fi
 
                 git fetch origin
                 git branch -r | grep -q $target_branch
                 if [ $? -ne 0 ]; then
                     echo "${Red}WARNING: Branch $target_branch is not exist ${Color_Off}"
-                    echo "${Cyan}Do you want to create new branch $target_branch from $current_branch? (y/n)${Color_Off}" 
-                    read -r answer
-                    if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
-                        git branch -m $1
-                        echo "${Green}INFO: Created branch $target_branch ${Color_Off}"
+                    if [ "$ask_new_branch" == true ]; then
+                        echo "${Cyan}Do you want to create new branch $target_branch? (y/n)${Color_Off}"
+                        read answer
+                        if [ "$answer" == "y" ]; then
+                            git checkout -b $target_branch
+                            echo "${Green}SUCCESS: Checkout $current_branch -> $target_branch ${Color_Off}"
+                            exit
+                        else
+                            echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                            exit
+                        fi
+                    else
+                        echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                        exit
                     fi
-                    exit
                 fi
 
                 git checkout $target_branch
                 echo "${Green}SUCCESS: Checkout $current_branch -> $target_branch ${Color_Off}"
-
             fi
         )
     done
@@ -209,7 +250,7 @@ case ${option} in
     push
     ;;
 "checkout")
-    check_out $1
+    checkout "$@"
     ;;
 "branch")
     check_branch
