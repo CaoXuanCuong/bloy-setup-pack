@@ -216,7 +216,6 @@ case ${option} in
     echo "  checkout    : checkout to branch"
     echo "  branch      : show current branch"
     echo "  domain      : show domain list"
-    exit 1
     ;;
 esac
 
