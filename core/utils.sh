@@ -60,6 +60,9 @@ commit() {
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                    else 
+                        echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                        exit
                     fi
                 fi
 
@@ -89,6 +92,9 @@ push() {
                         git add .
                         git commit -m "$message"
                         echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                    else 
+                        echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                        exit
                     fi
                 fi
 
@@ -181,6 +187,9 @@ checkout() {
                                 git add .
                                 git commit -m "$message"
                                 echo "${Green}SUCCESS: Commit to branch ${current_branch^^} | Message: $message ${Color_Off}"
+                            else 
+                                echo "${Yellow}INFO: Skipped ${DIRECTORY^^} ${Color_Off}"
+                                exit
                             fi
                         elif [ "$action" == "stash" ]; then
                             git stash
