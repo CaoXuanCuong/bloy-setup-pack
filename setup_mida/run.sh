@@ -410,7 +410,7 @@ install)
     start
 
     echo "DONE: installed all services"
-    show_domain
+    b2b domain
     ;;
 install_single)
     install_single $1

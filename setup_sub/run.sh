@@ -366,7 +366,7 @@ install)
     post_setup
     start
     echo "DONE: installed all services"
-    show_domain
+    b2b domain
     ;;
 init_db)
     init_db
