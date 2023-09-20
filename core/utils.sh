@@ -4,22 +4,23 @@ pull() {
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
-            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo -e "\033[32m\n----------- ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
+            current_branch=$(git rev-parse --abbrev-ref HEAD)
+            echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
 
             git fetch origin
             OUTPUT=$(git merge --no-commit --no-ff origin/master)
             
             if [ $? -eq 0 ]; then
                 if [[ $OUTPUT == *"up to date"* ]]; then
-                    echo -e "\033[32mINFO: Already up to date.\033[0m"
+                    echo -e "${Green}INFO: Already up to date.${Color_Off}"
                     exit
                 fi
-                git commit -m "Merge branch 'master' into $GIT_BRANCH"
-                echo -e "\033[32mSUCCESS: Merge branch 'master' into $GIT_BRANCH\033[0m"
+                git commit -m "Merge branch 'master' into $current_branch"
+                echo -e "${Green}SUCCESS: Merge branch 'master' into $current_branch${Color_Off}"
             else
                 git merge --abort
-                echo -e "\033[31mERROR: Git pull failed, you need to pull and resolve conflicts manually\033[0m"
+                echo -e "${Red}ERROR: Git pull failed, you need to pull and resolve conflicts manually${Color_Off}"
+                error_list+=($DIRECTORY)
             fi
         )
     done
@@ -33,7 +34,7 @@ check_branch() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
             fi
         )
     done
@@ -47,7 +48,7 @@ commit() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
@@ -76,7 +77,7 @@ push() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
                 # detect if there are uncommitted changes
                 UNCOMMITTED=$(git status --porcelain)
                 if [ -n "$UNCOMMITTED" ]; then
@@ -118,23 +119,11 @@ check_out() {
             cd $DIRECTORY
             if [ -d ".git" ]; then
                 current_branch=$(git branch | grep \* | cut -d ' ' -f2)
-                echo -e "\n${Green}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                target_branch=$1
+                echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} checkout branch ${current_branch^^} --> ${target_branch^^} ----------${Color_Off}"
                 
-                if [ "$current_branch" == "$1" ]; then
-                    echo "${Green}INFO: Already on branch $1 ${Color_Off}"
-                    exit
-                fi
-
-                git fetch origin
-                git branch -r | grep -q origin/$1
-                if [ $? -ne 0 ]; then
-                    echo "${Red}WARNING: Branch $1 is not exist ${Color_Off}"
-                    echo "${Cyan}Do you want to create new branch $1 from $current_branch? (y/n)${Color_Off}" 
-                    read -r answer
-                    if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
-                        git branch -m $1
-                        echo "${Green}SUCCESS: Checkout to branch $1 ${Color_Off}"
-                    fi
+                if [ "$current_branch" == "$target_branch" ]; then
+                    echo "${Cyan}INFO: Already on branch $target_branch ${Color_Off}"
                     exit
                 fi
 
@@ -169,6 +158,21 @@ check_out() {
                     
                 fi
 
+                git fetch origin
+                git branch -r | grep -q $target_branch
+                if [ $? -ne 0 ]; then
+                    echo "${Red}WARNING: Branch $target_branch is not exist ${Color_Off}"
+                    echo "${Cyan}Do you want to create new branch $target_branch from $current_branch? (y/n)${Color_Off}" 
+                    read -r answer
+                    if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
+                        git branch -m $1
+                        echo "${Green}INFO: Created branch $target_branch ${Color_Off}"
+                    fi
+                    exit
+                fi
+
+                git checkout $target_branch
+                echo "${Green}SUCCESS: Checkout $current_branch -> $target_branch ${Color_Off}"
 
             fi
         )
@@ -201,7 +205,7 @@ case ${option} in
     push
     ;;
 "checkout")
-    check_out $2
+    check_out $1
     ;;
 "branch")
     check_branch
