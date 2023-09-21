@@ -388,6 +388,9 @@ start_single)
 init_db)
     init_db
     ;;
+update_db)
+    update_db
+    ;;
 install_single)
     echo -e "\033[32mInstalling...\033[0m"
     install_single $1

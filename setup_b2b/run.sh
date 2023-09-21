@@ -395,13 +395,6 @@ start_production() {
     pm2 save
 }
 
-update() {
-    (pull)
-    (install_packages)
-    (update_db)
-    (restart)
-}
-
 case ${option} in
 init)
     init_code
@@ -430,9 +423,6 @@ init_db)
     ;;
 update_db)
     update_db
-    ;;
-update)
-    update
     ;;
 post_setup)
     post_setup

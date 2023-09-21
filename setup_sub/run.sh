@@ -371,6 +371,9 @@ install)
 init_db)
     init_db
     ;;
+update_db)
+    update_db
+    ;;
 install_single)
     install_single $1
     setup_env_single api

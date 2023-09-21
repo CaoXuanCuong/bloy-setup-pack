@@ -230,6 +230,23 @@ post_setup() {
     )
 }
 
+update_db() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+            if [ ! -f "package.json" ]; then
+                exit
+            fi
+            if [ -f "src/.sequelizerc" ]; then
+                echo "# npm run db-update"
+                npm run db-update
+            fi
+        )
+    done
+}
+
 start() {
     for env_file in "${env_files[@]}"; do
         (
@@ -380,6 +397,9 @@ install)
     ;;
 init_db)
     init_db
+    ;;
+update_db)
+    update_db
     ;;
 install_single)
     install_single $1

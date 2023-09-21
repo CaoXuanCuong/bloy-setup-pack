@@ -223,6 +223,21 @@ init_db_single() {
     npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
 }
 
+update_db() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+            if [ ! -f "package.json" ]; then
+                echo "ERROR: package.json is not exist in $DIRECTORY"
+                exit
+            fi
+            npx sequelize-cli db:migrate
+        )
+    done
+}
+
 post_setup() {
     (
         cd $DESTINATION_FOLDER
@@ -393,6 +408,9 @@ start_single)
     ;;
 init_db)
     init_db
+    ;;
+update_db)
+    update_db
     ;;
 install_single)
     echo -e "\033[32mInstalling...\033[0m"

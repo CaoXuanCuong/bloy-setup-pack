@@ -222,6 +222,20 @@ post_setup() {
     return
 }
 
+update_db() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd "$DIRECTORY"
+            if [ ! -f "package.json" ]; then
+                exit
+            fi
+            npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
+        )
+    done
+}
+
 start() {
     for env_file in "${env_files[@]}"; do
         (
@@ -371,6 +385,9 @@ install)
     ;;
 init_db)
     init_db
+    ;;
+update_db)
+    update_db
     ;;
 install_single)
     install_single $1

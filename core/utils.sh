@@ -246,6 +246,13 @@ show_domain() {
     done < domain_list_template
 }
 
+update() {
+    (pull)
+    (install_packages)
+    (update_db)
+    (start)
+}
+
 is_option=true
 
 case ${option} in
@@ -267,6 +274,9 @@ case ${option} in
 "domain")
     show_domain
     ;;
+"update")
+    update
+    ;;
 *)
     is_option=false
     echo "Usage: ./.sh <option>"
@@ -277,5 +287,6 @@ case ${option} in
     echo "   checkout    : checkout to branch"
     echo "   branch      : show current branch"
     echo "   domain      : show domain list"
+    echo "   update      : pull, install packages, update db, restart"
     ;;
 esac
