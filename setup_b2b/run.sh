@@ -431,6 +431,9 @@ init_db)
 update_db)
     update_db
     ;;
+update)
+    update
+    ;;
 post_setup)
     post_setup
     ;;
@@ -507,6 +510,10 @@ clean)
     echo "   setup_env_single <name> : setup single env file"
     echo "   update_env : update cms, api .env file"
     echo "   update_env_single <name> : update single env file"
+    echo "   init_db   : init db for all services"
+    echo "   init_db_single <name> : init db for single service"
+    echo "   update_db : update db for all services"
+    echo "   update    : pull, install_packages, update_db, restart"
     echo "   post_setup : run post setup. Ex: npm run build-script, ..."
     echo "   start      : start processes"
     echo "   start_single <name> : start single process"
