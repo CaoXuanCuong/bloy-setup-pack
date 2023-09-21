@@ -366,6 +366,11 @@ start_production() {
             if [ $env_file == "api.env" ]; then
                 npm run build-script
             fi
+
+            if [ $env_file == "proxy.env" ]; then
+                pm2 start npx --name $PROCESS_NAME-prod -- next start -p $PORT
+                exit
+            fi
             pm2 start npm --name $PROCESS_NAME-prod -- run start
         )
     done
