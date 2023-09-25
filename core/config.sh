@@ -15,6 +15,7 @@ export Light_Cyan=$(tput setaf 14)   # Light Cyan
 export White=$(tput setaf 15)        # White
 
 source $HOME/.nvm/nvm.sh
+source /usr/share/.shell_env
 
 if ! command -v npm &>/dev/null; then
     echo "ERROR: npm command not found"
