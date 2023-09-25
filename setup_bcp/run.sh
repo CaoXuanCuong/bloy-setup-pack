@@ -366,10 +366,25 @@ start_production() {
             if [ $env_file == "api.env" ]; then
                 npm run build-script
             fi
+
+            if [ $env_file == "proxy.env" ]; then
+                pm2 start npx --name $PROCESS_NAME-prod -- next start -p $PORT
+                exit
+            fi
             pm2 start npm --name $PROCESS_NAME-prod -- run start
         )
     done
     pm2 save
+}
+
+clean_process_production() {
+    cd $DESTINATION_FOLDER
+    for env_file in "${env_files[@]}"; do
+        source $env_file
+        echo "# pm2 delete $PROCESS_NAME-prod"
+        pm2 delete "$PROCESS_NAME-prod"
+    done
+    pm2 save --force
 }
 
 case ${option} in
@@ -454,6 +469,9 @@ start_single)
 start_production)
     start_production
     ;;
+clean_process_production)
+    clean_process_production
+    ;;
 stop)
     stop
     ;;
@@ -480,6 +498,7 @@ clean)
     echo "   start      : start processes"
     echo "   start_single <name> : start single process"
     echo "   start_production : start production processes"
+    echo "   clean_process_production : clean production processes"
     echo "   restart    : restart processes"
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
