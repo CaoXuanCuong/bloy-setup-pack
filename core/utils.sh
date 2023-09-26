@@ -121,6 +121,7 @@ checkout() {
         echo "   -c | --commit : commit changes to current branch before checkout"
         echo "   -s | --stash  : stash changes to current branch before checkout"
         echo "   -n | --new    : ask to create new branch if target branch is not exist"
+        echo "   -h | --help   : show help"
         exit 1
     }
 
@@ -151,6 +152,10 @@ checkout() {
         -n | --new)
             ask_new_branch=true
             shift
+            ;;
+        -h | --help)
+            print_usage
+            exit 1
             ;;
         *)
             echo "ERROR: Invalid option $key"
@@ -253,6 +258,28 @@ update() {
     (start)
 }
 
+upgrade() {
+    # migrate to use pnpm
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            
+            # check if has both node_modules and pnpm-lock.yaml
+            if [ -d "node_modules" ] && [ -f "pnpm-lock.yaml" ]; then
+                exit
+            fi
+
+            echo "${Light_Blue}---------- Migrating to pnpm for ${DIRECTORY^^} ----------${Color_Off}"
+
+            rm -rf node_modules package-lock.json yarn.lock
+
+            pnpm install
+        )
+    done
+}
+
 is_option=true
 
 case ${option} in
@@ -277,6 +304,9 @@ case ${option} in
 "update")
     update
     ;;
+"upgrade")
+    upgrade
+    ;;
 *)
     is_option=false
     echo "Usage: ./.sh <option>"
@@ -288,5 +318,6 @@ case ${option} in
     echo "   branch      : show current branch"
     echo "   domain      : show domain list"
     echo "   update      : pull, install packages, update db, restart"
+    echo "   upgrade     : upgrade app"
     ;;
 esac
