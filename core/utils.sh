@@ -259,6 +259,37 @@ update() {
 }
 
 upgrade() {
+    print_usage() {
+        echo "Usage: ./.sh upgrade <option>"
+        echo "options:"
+        echo "   -f | --force   : force upgrade"
+        echo "   -h | --help   : show help"
+        exit 1
+    }
+
+    force=false
+    echo $0
+
+    while [[ $# -gt 0 ]]; do
+        key="$1"
+        echo $key
+        case $key in
+        -f | --force)
+            force=true
+            shift
+            ;;
+        -h | --help)
+            print_usage
+            exit 1
+            ;;
+        *)
+            echo "ERROR: Invalid option $key"
+            print_usage
+            exit 1
+            ;;
+        esac
+    done
+    
     # migrate to use pnpm
     for env_file in "${env_files[@]}"; do
         (
@@ -266,18 +297,16 @@ upgrade() {
             source $env_file
             cd $DIRECTORY
             
-            # check if has both node_modules and pnpm-lock.yaml
-            if [ -d "node_modules" ] && [ -f "pnpm-lock.yaml" ]; then
-                exit
+            if [ $force == true ] || [ ! -d "node_modules" ] || [ ! -f "pnpm-lock.yaml" ]; then
+                echo "${Light_Blue}---------- Migrating to pnpm for ${DIRECTORY^^} ----------${Color_Off}"
+
+                rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml
+
+                pnpm install
             fi
-
-            echo "${Light_Blue}---------- Migrating to pnpm for ${DIRECTORY^^} ----------${Color_Off}"
-
-            rm -rf node_modules package-lock.json yarn.lock
-
-            pnpm install
         )
     done
+    restart
 }
 
 is_option=true
