@@ -22,11 +22,9 @@ if ! command -v npm &>/dev/null; then
     exit 1
 fi
 
-if ! command -v pnpm &>/dev/null; then
-    echo "${Light_Blue}INFO: installing pnpm${Color_Off}"
-    npm install -g pnpm
-fi
-
+node_config() {
+    corepack enable
+}
 
 git_config() {
     required_version="2.42.0"
@@ -47,6 +45,7 @@ git_config() {
 
 config() {
     git_config
+    node_config
 }
 
 config

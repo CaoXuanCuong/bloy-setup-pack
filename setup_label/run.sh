@@ -35,7 +35,7 @@ while getopts ":p" opt; do
 done
 
 if [ ! -f "app.env" ]; then
-    echo "${Red}ERROR: app.env is not exist${Color_Off}"
+    echo "ERROR: app.env file is not exist"
     exit 1
 fi
 
@@ -116,7 +116,7 @@ setup_env() {
     sed -i "s/<DB_NAME>/$DB_NAME/g" "${env_files[@]}"
 
     update_env
-    echo "${Green}DONE: setup env for all services${Color_Off}"
+    echo "DONE: setup env"
 }
 
 setup_env_single() {
@@ -168,10 +168,10 @@ init_code() {
             source $env_file
             mkdir -p $DIRECTORY
             cd $DIRECTORY
-            echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
+            echo "install code and packages in $DIRECTORY"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                pnpm install
+                yarn install
             fi
         )
     done
@@ -187,10 +187,10 @@ init_code_single() {
     source $1.env
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
-    echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
+    echo "init code for $DIRECTORY"
     cd $DIRECTORY
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
-    pnpm install
+    yarn install
 }
 
 init_db() {
@@ -200,7 +200,7 @@ init_db() {
             source $env_file
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
-                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
+                echo "ERROR: package.json is not exist in $DIRECTORY"
                 exit
             fi
             npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
@@ -217,7 +217,7 @@ init_db_single() {
     source $1.env
     cd "$DIRECTORY"
     if [ ! -f "package.json" ]; then
-        echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
+        echo "ERROR: package.json is not exist in $DIRECTORY"
         return
     fi
     npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
@@ -230,7 +230,7 @@ update_db() {
             source $env_file
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
-                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
+                echo "ERROR: package.json is not exist in $DIRECTORY"
                 exit
             fi
             npx sequelize-cli db:migrate
@@ -259,13 +259,13 @@ start() {
             # check if process is running
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
+                echo "# pm2 restart $PROCESS_NAME"
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
                     exit
                 fi
-                echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+                echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
                 pm2 start npm --name $PROCESS_NAME -- run dev
             fi
         )
@@ -284,11 +284,11 @@ start_single() {
     # check if process is running
     pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
+        echo "# pm2 restart $PROCESS_NAME"
         pm2 restart $PROCESS_NAME --update-env
     else
         if [ -f "package.json" ]; then
-            echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+            echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
             pm2 start npm --name $PROCESS_NAME -- run dev
             pm2 save
         fi
@@ -345,8 +345,8 @@ install_packages() {
             if [ ! -f "package.json" ]; then
                 exit
             fi
-             echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
-            pnpm install
+            echo "# yarn install"
+            yarn install
         )
     done
 }
