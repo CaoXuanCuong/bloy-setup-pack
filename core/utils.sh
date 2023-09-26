@@ -253,6 +253,45 @@ update() {
     (start)
 }
 
+upgrade() {
+    # migrate to use pnpm
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            
+            # check if has both node_modules and pnpm-lock.yaml
+            if [ -d "node_modules" ] && [ -f "pnpm-lock.yaml" ]; then
+                exit
+            fi
+
+            echo "${Light_Blue}---------- Migrating to pnpm for ${DIRECTORY^^} ----------${Color_Off}"
+
+            rm -rf node_modules package-lock.json yarn.lock
+
+            pnpm install
+        )
+    done
+}
+
+revert_upgrade() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            
+            echo "${Light_Blue}---------- Revert for ${DIRECTORY^^} ----------${Color_Off}"
+
+            rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml
+
+            yarn install
+        )
+    done
+    b2b restart
+}
+
 is_option=true
 
 case ${option} in
@@ -276,6 +315,9 @@ case ${option} in
     ;;
 "update")
     update
+    ;;
+"revert_upgrade")
+    revert_upgrade
     ;;
 *)
     is_option=false
