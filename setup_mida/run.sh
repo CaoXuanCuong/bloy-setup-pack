@@ -35,7 +35,7 @@ while getopts ":p" opt; do
 done
 
 if [ ! -f "app.env" ]; then
-    echo "ERROR: app.env file is not exist"
+    echo "${Red}ERROR: app.env is not exist${Color_Off}"
     exit 1
 fi
 
@@ -118,7 +118,7 @@ setup_env() {
     sed -i "s|<AMQP_URI>|$AMQP_URI|g" "${env_files[@]}"
 
     update_env
-    echo "DONE: setup env"
+    echo "${Green}DONE: setup env for all services${Color_Off}"
 }
 
 setup_env_single() {
@@ -182,10 +182,10 @@ init_code() {
             source $env_file
             mkdir -p $DIRECTORY
             cd $DIRECTORY
-            echo "install code and packages in $DIRECTORY"
+            echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                npm install
+                pnpm install
             fi
             if [ -f "requirements.txt" ]; then
                 python3.8 -m venv venv
@@ -205,11 +205,11 @@ init_code_single() {
     source $1.env
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
-    echo "init code for $DIRECTORY"
+    echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
     cd $DIRECTORY
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
     if [ -f "package.json" ]; then
-        npm install
+        pnpm install
     fi
     if [ -f "requirements.txt" ]; then
         python3.8 -m venv venv
@@ -271,11 +271,11 @@ start() {
             # check if process is running
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                echo "# pm2 restart $PROCESS_NAME"
+                echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ -f "package.json" ]; then
-                    echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
+                    echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
                     pm2 start npm --name $PROCESS_NAME -- run dev
                 fi
                 if [ -f "run.py" ]; then
@@ -299,11 +299,11 @@ start_single() {
     # check if process is running
     pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "# pm2 restart $PROCESS_NAME"
+        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
         pm2 restart $PROCESS_NAME --update-env
     else
         if [ -f "package.json" ]; then
-            echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
+            echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
             pm2 start npm --name $PROCESS_NAME -- run dev
         fi
 
@@ -373,8 +373,8 @@ install_packages() {
             source $env_file
             cd "$DIRECTORY"
             if [ -f "package.json" ]; then
-                echo "# npm install"
-                npm install
+                 echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
+                pnpm install
             fi
             if [ -f "requirements.txt" ]; then
                 echo "# pip install -r requirements.txt"

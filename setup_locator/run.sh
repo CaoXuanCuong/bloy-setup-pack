@@ -39,7 +39,7 @@ while getopts ":p" opt; do
 done
 
 if [ ! -f "app.env" ]; then
-    echo "ERROR: app.env file is not exist"
+    echo "${Red}ERROR: app.env is not exist${Color_Off}"
     exit 1
 fi
 
@@ -110,7 +110,7 @@ setup_env() {
     sed -i "s/<EXPIRED_DAY>/$EXPIRED_DAY/g" "${env_files[@]}"
 
     update_env
-    echo "DONE: setup env"
+    echo "${Green}DONE: setup env for all services${Color_Off}"
 }
 
 setup_env_single() {
@@ -165,10 +165,10 @@ init_code() {
             source $env_file
             mkdir -p $DIRECTORY
             cd $DIRECTORY
-            echo "install code and packages in $DIRECTORY"
+            echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                yarn install
+                pnpm install
             fi
         )
     done
@@ -184,10 +184,10 @@ init_code_single() {
     source $1.env
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
-    echo "init code for $DIRECTORY"
+    echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
     cd $DIRECTORY
     git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
-    yarn install
+    pnpm install
 }
 
 init_db() {
@@ -197,7 +197,7 @@ init_db() {
             source $env_file
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
-                echo "ERROR: package.json is not exist in $DIRECTORY"
+                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
                 exit
             fi
             if [ -f ".sequelizerc" ]; then
@@ -216,7 +216,7 @@ init_db_single() {
     source $1.env
     cd "$DIRECTORY"
     if [ ! -f "package.json" ]; then
-        echo "ERROR: package.json is not exist in $DIRECTORY"
+        echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
         return
     fi
     if [ -f "src/.sequelizerc" ]; then
@@ -244,7 +244,7 @@ start() {
             # check if process is running
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                echo "# pm2 restart $PROCESS_NAME"
+                echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
@@ -274,7 +274,7 @@ start_single() {
     # check if process is running
     pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "# pm2 restart $PROCESS_NAME"
+        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
         pm2 restart $PROCESS_NAME --update-env
     else
         if [ ! -f "package.json" ]; then
@@ -340,8 +340,8 @@ install_packages() {
             if [ ! -f "package.json" ]; then
                 exit
             fi
-            echo "# yarn install"
-            yarn install
+             echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
+            pnpm install
         )
     done
 }
