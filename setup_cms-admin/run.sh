@@ -25,10 +25,6 @@ while getopts ":p" opt; do
         cp app.env.example app.env
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
         ;;
-    *)
-        echo "${Red}-------- Invalid option: -$OPTARG --------${Color_Off}" >&2
-        exit 1
-        ;;
     esac
 done
 

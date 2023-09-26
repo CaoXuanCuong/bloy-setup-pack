@@ -27,10 +27,6 @@ while getopts ":p" opt; do
         sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
         ;;
-    *)
-        echo "${Red}-------- Invalid option: -$OPTARG --------${Color_Off}" >&2
-        exit 1
-        ;;
     esac
 done
 
