@@ -35,7 +35,7 @@ while getopts ":p" opt; do
 done
 
 if [ ! -f "app.env" ]; then
-    echo "ERROR: app.env file is not exist"
+    echo "${Red}ERROR: app.env is not exist${Color_Off}"
     exit 1
 fi
 
@@ -126,7 +126,7 @@ setup_env() {
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
     update_env
-    echo "DONE: setup env"
+    echo "${Green}DONE: setup env for all services${Color_Off}"
 }
 
 setup_env_single() {
@@ -180,10 +180,10 @@ init_code() {
             source $env_file
             mkdir -p $DIRECTORY
             cd $DIRECTORY
-            echo "install code and packages in $DIRECTORY"
+            echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
             git clone "$BITBUCKET_URL" .
             if [ -f "package.json" ]; then
-                yarn install
+                pnpm install
             fi
         )
     done
@@ -199,10 +199,10 @@ init_code_single() {
     source $1.env
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
-    echo "init code for $DIRECTORY"
+    echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
     cd $DIRECTORY && git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
     if [ -f "package.json" ]; then
-        yarn install
+        pnpm install
     fi
 }
 
@@ -213,11 +213,11 @@ init_db() {
             source $env_file
             cd "$DIRECTORY"
             if [ ! -f "package.json" ]; then
-                echo "ERROR: package.json is not exist in $DIRECTORY"
+                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
                 exit
             fi
             if [ -f ".sequelizerc" ]; then
-                echo "# npm run db-init"
+                echo "${Green}----------- INIT DB ${DIRECTORY^^} ------------${Color_Off}"
                 npm run db-init
             fi
         )
@@ -233,11 +233,11 @@ init_db_single() {
     source $1.env
     cd "$DIRECTORY"
     if [ ! -f "package.json" ]; then
-        echo "ERROR: package.json is not exist in $DIRECTORY"
+        echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
         return
     fi
     if [ -f ".sequelizerc" ]; then
-        echo "# npm run db-init"
+        echo "${Green}----------- INIT DB ${DIRECTORY^^} ------------${Color_Off}"
         npm run db-init
     fi
 }
@@ -253,7 +253,7 @@ update_db() {
             fi
             if [ -f ".sequelizerc" ]; then
                 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-                echo -e "\033[32m\n----------- UPDATE DB ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------\033[0m"
+                echo -e "${Green}----------- UPDATE DB ${DIRECTORY^^} branch: ${GIT_BRANCH^^}------------${Color_Off}"
                 npm run db-update
             fi
         )
@@ -269,13 +269,13 @@ start() {
             # check if process is running
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
-                echo "# pm2 restart $PROCESS_NAME"
+                echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ ! -f "package.json" ]; then
                     exit
                 fi
-                echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
+                echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
                 pm2 start npm --name $PROCESS_NAME -- run dev
             fi
         )
@@ -294,11 +294,11 @@ start_single() {
     # check if process is running
     pm2 describe $PROCESS_NAME >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-        echo "# pm2 restart $PROCESS_NAME"
+        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
         pm2 restart $PROCESS_NAME --update-env
     else
         if [ -f "package.json" ]; then
-            echo "# pm2 start npm --name $PROCESS_NAME -- run dev"
+            echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
             pm2 start npm --name $PROCESS_NAME -- run dev
             pm2 save
         fi
@@ -309,7 +309,7 @@ stop() {
     cd $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         source $env_file
-        echo "# pm2 stop $PROCESS_NAME"
+        echo "${Green}INFO: pm2 stop $PROCESS_NAME${Color_Off}"
         pm2 stop "$PROCESS_NAME"
     done
 }
@@ -318,7 +318,7 @@ clean_process() {
     cd $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         source $env_file
-        echo "# pm2 delete $PROCESS_NAME"
+        echo "${Green}INFO: pm2 delete $PROCESS_NAME${Color_Off}"
         pm2 delete "$PROCESS_NAME"
     done
     pm2 save --force
@@ -328,7 +328,7 @@ clean() {
     cd $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         source $env_file
-        echo "# pm2 delete $PROCESS_NAME"
+        echo "${Green}INFO: pm2 delete $PROCESS_NAME${Color_Off}"
         pm2 delete "$PROCESS_NAME"
         rm -rf "$DIRECTORY"
     done
@@ -355,8 +355,8 @@ install_packages() {
             if [ ! -f "package.json" ]; then
                 exit
             fi
-            echo "# yarn install"
-            yarn install
+            echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
+            pnpm install
         )
     done
 }
@@ -399,7 +399,7 @@ clean_process_production() {
     cd $DESTINATION_FOLDER
     for env_file in "${env_files[@]}"; do
         source $env_file
-        echo "# pm2 delete $PROCESS_NAME-prod"
+        echo "${Green}INFO: pm2 delete $PROCESS_NAME-prod${Color_Off}"
         pm2 delete "$PROCESS_NAME-prod"
     done
     pm2 save --force
