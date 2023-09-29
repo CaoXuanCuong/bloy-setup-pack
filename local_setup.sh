@@ -413,6 +413,7 @@ function restart_container() {
         tool_name=$(basename $tool)
         if [[ $(docker ps -q -f name=$tool_name) != "" ]]; then
           echo "${Cyan}----- Restarting $tool_name container... ------${Color_Off}"
+          cp $tool/.env.example $tool/.env
           docker compose -f $tool/docker-compose.yml up -d --force-recreate
         fi
       fi
