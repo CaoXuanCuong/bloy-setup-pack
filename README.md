@@ -20,16 +20,17 @@ Run this script, enter your email and put the public key to your bitbucket accou
     
 ```bash
 cat <<EOF > setup_ssh_key.sh
-if [ -f ~/.ssh/bss-wsl ]; then
+if [ -f ~/.ssh/bss-wsl1 ]; then
   echo "SSH key is already exist"
   exit 0
 fi
 
 mkdir -p ~/.ssh
 read -p "Enter your email address: " EMAIL_ADDRESS
-ssh-keygen -t ed25519 -b 4096 -C $EMAIL_ADDRESS -f ~/.ssh/bss-wsl  -q -N ""
-eval `ssh-agent -s`
-ssh-add ~/.ssh/bss-wsl
+ssh-keygen -t ed25519 -b 4096 -C \$EMAIL_ADDRESS -f ~/.ssh/bss-wsl1  -q -N ""
+SSH_AGENT_INFO=\$(ssh-agent -s)
+eval "\$SSH_AGENT_INFO"
+ssh-add ~/.ssh/bss-wsl1
 
 if [ ! -f ~/.ssh/config ]; then
   touch ~/.ssh/config
@@ -38,12 +39,12 @@ fi
 cat <<EOF2 >> ~/.ssh/config
 Host bitbucket.org
   AddKeysToAgent yes
-  IdentityFile ~/.ssh/bss-wsl
+  IdentityFile ~/.ssh/bss-wsl1
 EOF2
 
 echo "Please copy the following public key to your bitbucket account"
 tput setaf 6
-cat ~/.ssh/bss-wsl.pub
+cat ~/.ssh/bss-wsl1.pub
 tput sgr0
 EOF
 bash setup_ssh_key.sh
