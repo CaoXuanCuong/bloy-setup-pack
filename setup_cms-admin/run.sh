@@ -206,8 +206,7 @@ init_db_single() {
         echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
         return
     fi
-    if [ -f "src/.sequelizerc" ]; then
-        cd src
+    if [ -f ".sequelizerc" ]; then
         npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
     fi
 }
