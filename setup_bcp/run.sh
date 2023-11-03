@@ -19,8 +19,8 @@ while getopts ":p" opt; do
 
         read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
 
-        read -p "API_VERSION (Default: 2022-10): " API_VERSION
-        API_VERSION=${API_VERSION:-2022-10}
+        read -p "API_VERSION (Default: 2023-01): " API_VERSION
+        API_VERSION=${API_VERSION:-2023-01}
 
         cp app.env.example app.env
         sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env

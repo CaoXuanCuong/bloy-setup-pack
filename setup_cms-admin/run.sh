@@ -19,8 +19,8 @@ while getopts ":p" opt; do
     case $opt in
     p)
         echo "${Green}-------- Enter app environment. --------${Color_Off}"
-        read -p "API_VERSION (Default: 2022-10): " API_VERSION
-        API_VERSION=${API_VERSION:-2022-10}
+        read -p "API_VERSION (Default: 2023-01): " API_VERSION
+        API_VERSION=${API_VERSION:-2023-01}
 
         cp app.env.example app.env
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
