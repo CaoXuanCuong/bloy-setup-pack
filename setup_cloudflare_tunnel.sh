@@ -6,12 +6,10 @@ if [ -L "$0" ]; then
 fi
 cd $script_dir
 
-if ! command -v cloudflared &>/dev/null; then
-    # install cloudflare cli
-    echo "${Green}--------Installing cloudflare cli--------${Color_Off}"
-    rm -f cloudflared-linux-amd64.deb
-    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
-fi
+# install cloudflare cli
+echo "${Green}--------Installing/Updating cloudflare cli--------${Color_Off}"
+rm -f cloudflared-linux-amd64.deb
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && dpkg -i cloudflared-linux-amd64.deb && rm -f cloudflared-linux-amd64.deb
 
 while [[ $# -gt 0 ]]; do
   key="$1"
