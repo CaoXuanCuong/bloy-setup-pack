@@ -21,7 +21,7 @@ Host sbc-gitlab.bsscommerce.com
   IdentityFile ~/.ssh/gitlab
 EOF2
 
-echo "Please copy the following public key to your bitbucket account"
+echo "Please copy the following public key to your gitlab account"
 tput setaf 6
 cat ~/.ssh/gitlab.pub
 tput sgr0
