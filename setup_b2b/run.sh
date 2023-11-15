@@ -177,7 +177,7 @@ init_code() {
             mkdir -p $DIRECTORY
             cd $DIRECTORY
             echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
-            git clone "$BITBUCKET_URL" .
+            git clone "$GIT_URL" .
             if [ -f "package.json" ]; then
                 pnpm install
             fi
@@ -196,7 +196,7 @@ init_code_single() {
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
     echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
-    cd $DIRECTORY && git clone $BITBUCKET_URL $DESTINATION_FOLDER/$DIRECTORY
+    cd $DIRECTORY && git clone $GIT_URL $DESTINATION_FOLDER/$DIRECTORY
     if [ -f "package.json" ]; then
         pnpm install
     fi

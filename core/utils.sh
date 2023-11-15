@@ -309,6 +309,22 @@ upgrade() {
     restart
 }
 
+set_remote_url() {
+    for env_file in "${env_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            source $env_file
+            cd $DIRECTORY
+            if [ -d ".git" ]; then
+                current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+                echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
+                git remote set-url origin $GIT_URL
+                echo "${Green}SUCCESS: Set remote url to $GIT_URL ${Color_Off}"
+            fi
+        )
+    done
+}
+
 is_option=true
 
 case ${option} in
@@ -336,6 +352,9 @@ case ${option} in
 "upgrade")
     upgrade
     ;;
+"set_remote_url")
+    set_remote_url
+    ;;
 *)
     is_option=false
     echo "Usage: ./.sh <option>"
@@ -348,5 +367,6 @@ case ${option} in
     echo "   domain      : show domain list"
     echo "   update      : pull, install packages, update db, restart"
     echo "   upgrade     : upgrade app"
+    echo "   set_remote_url : set remote url"
     ;;
 esac
