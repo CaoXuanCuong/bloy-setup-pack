@@ -310,6 +310,7 @@ upgrade() {
 }
 
 set_remote_url() {
+    setup_env
     for env_file in "${env_files[@]}"; do
         (
             cd $DESTINATION_FOLDER
