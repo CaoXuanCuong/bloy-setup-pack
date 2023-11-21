@@ -401,6 +401,25 @@ clean_process_production() {
     pm2 save --force
 }
 
+install_dependencies() {
+    if ! command -v rbenv &>/dev/null; then
+        sudo nala install build-essential zlib1g-dev libssl-dev libreadline-dev libyaml-dev
+        echo "${Green}------ START: Install rbenv -------${Color_Off}"
+        curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+        ~/.rbenv/bin/rbenv init
+        eval "$(~/.rbenv/bin/rbenv init - zsh)"
+        printf '\neval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
+        printf '\neval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+        rbenv install 3.2.2
+        rbenv global 3.2.2
+    fi
+
+    if ! gem list -i bundler > /dev/null; then
+        echo "Installing bundler..."
+        sudo gem install bundler
+    fi
+}
+
 case ${option} in
 init)
     init_code
@@ -415,6 +434,7 @@ init_single)
     setup_env_single $1
     ;;
 install)
+    install_dependencies
     init_code
     setup_env
     init_db
@@ -439,6 +459,9 @@ install_single)
     ;;
 install_packages)
     install_packages
+    ;;
+install_dependencies)
+    install_dependencies
     ;;
 restart)
     start
@@ -503,6 +526,7 @@ clean)
     echo "   install    : setup code and start processes"
     echo "   install_single <name> : setup code and start single process"
     echo "   install_packages : install packages"
+    echo "   install_dependencies : install dependencies"
     echo "   init      : setup code for all services"
     echo "   init_single <name> : setup code for single service"
     echo "   setup_env  : setup env for all services"
