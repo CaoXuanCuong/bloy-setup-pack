@@ -19,6 +19,7 @@ If you need help, contact devops team to assist you
 Run this script, enter your email and put the public key to your bitbucket account
     
 ```bash
+cat <<EOF > setup_ssh_key.sh
 if [ -f ~/.ssh/gitlab ]; then
   echo "SSH key is already exist"
   exit 0
@@ -45,6 +46,8 @@ echo "Please copy the following public key to your bitbucket account"
 tput setaf 6
 cat ~/.ssh/gitlab.pub
 tput sgr0
+EOF
+bash setup_ssh_key.sh
 ```
 
 2.2. Clone project
