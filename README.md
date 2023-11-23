@@ -27,9 +27,9 @@ fi
 
 mkdir -p ~/.ssh
 read -p "Enter your email address: " EMAIL_ADDRESS
-ssh-keygen -t ed25519 -b 4096 -C $EMAIL_ADDRESS -f ~/.ssh/gitlab  -q -N ""
-SSH_AGENT_INFO=$(ssh-agent -s)
-eval "$SSH_AGENT_INFO"
+ssh-keygen -t ed25519 -b 4096 -C \$EMAIL_ADDRESS -f ~/.ssh/gitlab  -q -N ""
+SSH_AGENT_INFO=\$(ssh-agent -s)
+eval "\$SSH_AGENT_INFO"
 ssh-add ~/.ssh/gitlab
 
 if [ ! -f ~/.ssh/config ]; then
