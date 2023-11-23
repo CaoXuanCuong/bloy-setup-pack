@@ -403,13 +403,17 @@ clean_process_production() {
 
 install_dependencies() {
     if ! command -v rbenv &>/dev/null; then
-        sudo nala install build-essential zlib1g-dev libssl-dev libreadline-dev libyaml-dev
+        sudo nala install build-essential zlib1g-dev libssl-dev libreadline-dev libyaml-dev -y
         echo "${Green}------ START: Install rbenv -------${Color_Off}"
         curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
         ~/.rbenv/bin/rbenv init
         eval "$(~/.rbenv/bin/rbenv init - zsh)"
-        printf '\neval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
-        printf '\neval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+        if [ ! grep -q ".rbenv" ~/.zshrc]; then
+            echo 'eval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
+        fi
+        if [ ! grep -q ".rbenv" ~/.bashrc]; then
+            echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+        fi
         rbenv install 3.2.2
         rbenv global 3.2.2
     fi
