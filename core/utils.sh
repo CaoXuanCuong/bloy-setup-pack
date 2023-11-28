@@ -7,6 +7,11 @@ pull() {
             current_branch=$(git rev-parse --abbrev-ref HEAD)
             echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
 
+            if [ "$current_branch" == "master" ]; then
+                git pull
+                exit
+            fi
+
             git fetch origin
             OUTPUT=$(git merge --no-commit --no-ff origin/master)
             
