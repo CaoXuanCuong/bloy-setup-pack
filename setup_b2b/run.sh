@@ -338,7 +338,7 @@ install_single() {
         exit 1
     fi
     (init_code_single $1)
-    (setup_env_single $1)
+    (setup_env)
     (init_db_single $1)
     (start_single $1)
 }
@@ -489,14 +489,14 @@ setup_env_single)
     setup_env_single $1
     ;;
 update_env)
-    update_env
+    setup_env
     ;;
 update_env_single)
     if [ -z "$1" ]; then
         echo "Usage: ./.sh update_env_single <name>"
         exit 1
     fi
-    update_env_single $1
+    setup_env_single $1
     ;;
 start)
     start
