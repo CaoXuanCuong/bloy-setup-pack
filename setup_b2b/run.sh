@@ -77,6 +77,7 @@ declare -a env_files=(
     public-api.env
     webhook-api.env
     rfe-api.env
+    checkout-api.env
 )
 
 update_env() {
