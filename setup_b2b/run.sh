@@ -265,7 +265,16 @@ update_db() {
     done
 }
 
+start_services() {
+    if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
+        cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
+        docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
+        echo "INFO: start rabbitmq container"
+    fi
+}
+
 start() {
+    start_services
     for env_file in "${env_files[@]}"; do
         (
             cd $DESTINATION_FOLDER
@@ -430,14 +439,6 @@ install_dependencies() {
     if ! gem list -i bundler > /dev/null; then
         echo "Installing bundler..."
         sudo gem install bundler
-    fi
-}
-
-start_services() {
-    if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
-        cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
-        docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
-        echo "INFO: start rabbitmq container"
     fi
 }
 

@@ -259,6 +259,7 @@ show_domain() {
 update() {
     (pull)
     (install_packages)
+    (setup_env)
     (update_db)
     (start)
 }
