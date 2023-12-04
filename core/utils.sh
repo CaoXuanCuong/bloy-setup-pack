@@ -8,7 +8,7 @@ pull() {
             echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
 
             if [ "$current_branch" == "master" ]; then
-                git pull
+                git pull --ff-only
                 exit
             fi
 
@@ -259,6 +259,7 @@ show_domain() {
 update() {
     (pull)
     (install_packages)
+    (setup_env)
     (update_db)
     (start)
 }

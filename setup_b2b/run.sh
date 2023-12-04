@@ -122,6 +122,10 @@ setup_env() {
 
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
+    RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
+    AMQP_URI="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD_ENCODED@$RABBITMQ_HOST:$RABBITMQ_PORT"
+    sed -i "s|<AMQP_URI>|$AMQP_URI|g" "${env_files[@]}"
+
     update_env
     echo "${Green}DONE: setup env for all services${Color_Off}"
 }
@@ -147,6 +151,10 @@ setup_env_single() {
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     sed -i "s/<PUBLIC_API_PORT>/$PUBLIC_API_PORT/g" $1.env
+
+    RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
+    AMQP_URI="amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD_ENCODED@$RABBITMQ_HOST:$RABBITMQ_PORT"
+    sed -i "s|<AMQP_URI>|$AMQP_URI|g" $1.env
 
     sed -i "s|<REDIS_URL>|$REDIS_URL|g" $1.env
 
@@ -257,7 +265,16 @@ update_db() {
     done
 }
 
+start_services() {
+    if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
+        cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
+        docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
+        echo "INFO: start rabbitmq container"
+    fi
+}
+
 start() {
+    start_services
     for env_file in "${env_files[@]}"; do
         (
             cd $DESTINATION_FOLDER
@@ -425,6 +442,13 @@ install_dependencies() {
     fi
 }
 
+stop_services() {
+    if [ "$(docker ps -q -f name=rabbitmq)" != "" ]; then
+        docker compose -f ../tools/rabbitmq/docker-compose.yml down
+        echo "INFO: stop rabbitmq container"
+    fi
+}
+
 case ${option} in
 init)
     init_code
@@ -513,6 +537,12 @@ start_production)
     ;;
 clean_process_production)
     clean_process_production
+    ;;
+start_services)
+    start_services
+    ;;
+stop_services)
+    stop_services
     ;;
 stop)
     stop
