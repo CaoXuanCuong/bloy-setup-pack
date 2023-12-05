@@ -426,11 +426,11 @@ install_dependencies() {
         curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
         ~/.rbenv/bin/rbenv init
         eval "$(~/.rbenv/bin/rbenv init - zsh)"
-        if [ ! grep -q ".rbenv" ~/.zshrc]; then
-            echo 'eval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
+        if ! grep -q ".rbenv" ~/.zshrc; then
+            echo -e '\neval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
         fi
-        if [ ! grep -q ".rbenv" ~/.bashrc]; then
-            echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+        if ! grep -q ".rbenv" ~/.bashrc; then
+            echo -e '\neval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
         fi
         rbenv install 3.2.2
         rbenv global 3.2.2
@@ -576,6 +576,8 @@ clean)
     echo "   start      : start processes"
     echo "   start_single <name> : start single process"
     echo "   start_production : start production processes"
+    echo "   start_services : start external services (rabbitmq, redis)"
+    echo "   stop_services : stop 
     echo "   clean_process_production : clean production processes"
     echo "   restart    : restart processes"
     echo "   stop       : stop processes"
