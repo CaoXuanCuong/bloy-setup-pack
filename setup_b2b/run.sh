@@ -577,7 +577,7 @@ clean)
     echo "   start_single <name> : start single process"
     echo "   start_production : start production processes"
     echo "   start_services : start external services (rabbitmq, redis)"
-    echo "   stop_services : stop 
+    echo "   stop_services : stop" 
     echo "   clean_process_production : clean production processes"
     echo "   restart    : restart processes"
     echo "   stop       : stop processes"
