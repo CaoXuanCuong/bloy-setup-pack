@@ -17,6 +17,11 @@ pull() {
             fi
 
             git fetch origin
+            if ! git branch -r | grep -q $target_branch; then
+                echo -e "${Red}SKIP: Branch $target_branch is not exist on ${DIRECTORY^^} ${Color_Off}"
+                exit
+            fi
+
             OUTPUT=$(git merge --no-commit --no-ff origin/$target_branch)
             
             if [ $? -eq 0 ]; then
@@ -268,7 +273,7 @@ update() {
     (start)
 }
 
-upgrade() {
+migrate_to_pnpm() {
     print_usage() {
         echo "Usage: ./.sh upgrade <option>"
         echo "options:"
@@ -340,7 +345,7 @@ is_option=true
 
 case ${option} in
 "pull")
-    pull
+    pull "$@"
     ;;
 "commit")
     commit
@@ -360,8 +365,8 @@ case ${option} in
 "update")
     update
     ;;
-"upgrade")
-    upgrade
+"migrate_to_pnpm")
+    migrate_to_pnpm "$@"
     ;;
 "set_remote_url")
     set_remote_url
