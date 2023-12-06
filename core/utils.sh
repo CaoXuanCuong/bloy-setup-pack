@@ -1,4 +1,8 @@
 pull() {
+    target_branch=$1
+    if [ -z "$1" ]; then
+        target_branch="master"
+    fi
     for env_file in "${env_files[@]}"; do
         (
             cd $DESTINATION_FOLDER
@@ -7,24 +11,24 @@ pull() {
             current_branch=$(git rev-parse --abbrev-ref HEAD)
             echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
 
-            if [ "$current_branch" == "master" ]; then
-                git pull --ff-only
+            if [ "$current_branch" == "$target_branch" ]; then
+                git pull
                 exit
             fi
 
             git fetch origin
-            OUTPUT=$(git merge --no-commit --no-ff origin/master)
+            OUTPUT=$(git merge --no-commit --no-ff origin/$target_branch)
             
             if [ $? -eq 0 ]; then
                 if [[ $OUTPUT == *"up to date"* ]]; then
                     echo -e "${Green}INFO: Already up to date.${Color_Off}"
                     exit
                 fi
-                git commit -m "Merge branch 'master' into $current_branch"
-                echo -e "${Green}SUCCESS: Merge branch 'master' into $current_branch${Color_Off}"
+                git commit -m "Merge branch '$target_branch' into $current_branch"
+                echo -e "${Green}SUCCESS: Merge branch '$target_branch' into $current_branch${Color_Off}"
             else
                 git merge --abort
-                echo -e "${Red}ERROR: Git pull failed, you need to pull and resolve conflicts manually${Color_Off}"
+                echo -e "${Red}ERROR: Git pull '$target_branch' failed, you need to pull and resolve conflicts manually${Color_Off}"
                 error_list+=($DIRECTORY)
             fi
         )
