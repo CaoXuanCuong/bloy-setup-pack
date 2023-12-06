@@ -21,6 +21,12 @@ pull() {
             fi
 
             if [ "$current_branch" == "$target_branch" ]; then
+
+                if [ "$current_branch" == "master" ]; then
+                    git pull --ff-only
+                    exit
+                fi
+
                 git pull
                 exit
             fi
