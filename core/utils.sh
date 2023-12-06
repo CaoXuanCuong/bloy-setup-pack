@@ -1,24 +1,27 @@
 pull() {
     target_branch=$1
-    if [ -z "$1" ]; then
-        target_branch="master"
-    fi
+
     for env_file in "${env_files[@]}"; do
         (
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
             current_branch=$(git rev-parse --abbrev-ref HEAD)
-            echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} branch ${current_branch^^} ----------${Color_Off}"
 
-            if [ "$current_branch" == "$target_branch" ]; then
-                git pull
+            if [ -z "$target_branch" ]; then
+                target_branch=$current_branch
+            fi
+
+            echo -e "\n${Light_Blue}---------- ${DIRECTORY^^} - merge '$target_branch' into '$current_branch' ----------${Color_Off}"
+
+            git fetch origin
+            if ! git branch -r | grep -q origin/$target_branch; then
+                echo -e "${Red}SKIP: Branch $target_branch is not exist on remote ${DIRECTORY^^} ${Color_Off}"
                 exit
             fi
 
-            git fetch origin
-            if ! git branch -r | grep -q $target_branch; then
-                echo -e "${Red}SKIP: Branch $target_branch is not exist on ${DIRECTORY^^} ${Color_Off}"
+            if [ "$current_branch" == "$target_branch" ]; then
+                git pull
                 exit
             fi
 
