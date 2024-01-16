@@ -266,25 +266,31 @@ start() {
 }
 
 start_single() {
-    if [ -z "$1" ]; then
+    (
+        if [ -z "$1" ]; then
         echo "Usage: ./.sh start_single <name>"
         exit 1
-    fi
-    cd $DESTINATION_FOLDER
-    source $1.env
-    cd "$DIRECTORY"
-    # check if process is running
-    pm2 describe $PROCESS_NAME >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
-        pm2 restart $PROCESS_NAME --update-env
-    else
-        if [ -f "package.json" ]; then
-            echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
-            pm2 start npm --name $PROCESS_NAME -- run dev
         fi
-        pm2 save
-    fi
+        cd $DESTINATION_FOLDER
+        if ! grep -q "PROCESS_NAME" $1.env; then
+            echo "SKIP: $1.env does not have PROCESS_NAME"
+            exit 1
+        fi
+        source $1.env
+        cd "$DIRECTORY"
+        
+        pm2 describe $PROCESS_NAME >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
+            pm2 restart $PROCESS_NAME --update-env
+        else
+            if [ -f "package.json" ]; then
+                echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+                pm2 start npm --name $PROCESS_NAME -- run dev
+            fi
+            pm2 save
+        fi
+    )
 }
 
 stop() {
@@ -334,7 +340,6 @@ install_single() {
     fi
     (init_code_single $1)
     (setup_env_single $1)
-    (init_db_single $1)
     (start_single $1)
 }
 
