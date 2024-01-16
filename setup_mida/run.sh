@@ -195,6 +195,8 @@ init_code_single() {
         echo "Usage: ./.sh init_code_single <name>"
         exit 1
     fi
+    rm -rf $DESTINATION_FOLDER
+    mkdir -p $DESTINATION_FOLDER
     cp "$1.env" "$DESTINATION_FOLDER/$1.env"
     cd $DESTINATION_FOLDER
     source $1.env
