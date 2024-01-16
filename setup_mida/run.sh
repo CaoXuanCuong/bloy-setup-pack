@@ -112,6 +112,7 @@ setup_env() {
     sed -i "s|<MONGO_URI>|$MONGO_URI_ESCAPED|g" "${env_files[@]}"
     sed -i "s|<MONGO_SEED>|$MONGO_SEED|g" "${env_files[@]}"
     sed -i "s|<AMQP_URI>|$AMQP_URI|g" "${env_files[@]}"
+    sed -i "s|<REDIS_URI>|$REDIS_URI|g" "${env_files[@]}"
 
     update_env
     echo "${Green}DONE: setup env for all services${Color_Off}"
@@ -134,6 +135,7 @@ setup_env_single() {
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     sed -i "s/<HM_PORT>/$HM_PORT/g" $1.env
     sed -i "s/<RECORDER_PORT>/$RECORDER_PORT/g" $1.env
+    sed -i "s|<REDIS_URI>|$REDIS_URI|g" $1.env
 
     MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
     MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
@@ -183,10 +185,6 @@ init_code() {
             if [ -f "package.json" ]; then
                 pnpm install
             fi
-            if [ -f "requirements.txt" ]; then
-                python3.8 -m venv venv
-                python3 -m pip install -r requirements.txt
-            fi
         )
     done
 }
@@ -207,10 +205,6 @@ init_code_single() {
     if [ -f "package.json" ]; then
         pnpm install
     fi
-    if [ -f "requirements.txt" ]; then
-        python3.8 -m venv venv
-        python3 -m pip install -r requirements.txt
-    fi
 }
 
 post_setup() {
@@ -221,16 +215,6 @@ post_setup() {
         echo "# npm run build-msr"
         npm run build-msr
     )
-}
-
-setup_python_environment() {
-    sudo nala update
-    sudo nala install software-properties-common -y
-    sudo add-apt-repository ppa:deadsnakes/ppa -y
-    sudo nala update
-    sudo nala install python3.8 -y
-    sudo nala install python3.8-venv -y
-    sudo nala install python3-pip -y
 }
 
 install_dependencies() {
@@ -274,10 +258,6 @@ start() {
                     echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
                     pm2 start npm --name $PROCESS_NAME -- run dev
                 fi
-                if [ -f "run.py" ]; then
-                    echo "# pm2 start run.py --name $PROCESS_NAME --interpreter python3"
-                    pm2 start run.py --name $PROCESS_NAME --interpreter python3
-                fi
             fi
         )
     done
@@ -301,11 +281,6 @@ start_single() {
         if [ -f "package.json" ]; then
             echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
             pm2 start npm --name $PROCESS_NAME -- run dev
-        fi
-
-        if [ -f "run.py" ]; then
-            echo "# pm2 start run.py --name $PROCESS_NAME --interpreter python3"
-            pm2 start run.py --name $PROCESS_NAME --interpreter python3
         fi
         pm2 save
     fi
@@ -372,10 +347,6 @@ install_packages() {
                  echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
                 pnpm install
             fi
-            if [ -f "requirements.txt" ]; then
-                echo "# pip install -r requirements.txt"
-                pip install -r requirements.txt
-            fi
         )
     done
 }
@@ -383,7 +354,6 @@ install_packages() {
 case ${option} in
 install_dependencies)
     install_dependencies
-    setup_python_environment
     ;;
 init)
     init_code
@@ -399,7 +369,6 @@ init_single)
     ;;
 install)
     install_dependencies
-    setup_python_environment
     init_code
     setup_env
     post_setup
