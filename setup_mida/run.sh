@@ -59,6 +59,7 @@ declare -a env_files=(
     cms.env
     hm.env
     recorder.env
+    extension.env
 )
 
 update_env() {
