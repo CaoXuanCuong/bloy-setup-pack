@@ -112,7 +112,7 @@ setup_env() {
     sed -i "s|<MONGO_URI>|$MONGO_URI_ESCAPED|g" "${env_files[@]}"
     sed -i "s|<MONGO_SEED>|$MONGO_SEED|g" "${env_files[@]}"
     sed -i "s|<AMQP_URI>|$AMQP_URI|g" "${env_files[@]}"
-    sed -i "s|<REDIS_URI>|$REDIS_URI|g" "${env_files[@]}"
+    sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
     update_env
     echo "${Green}DONE: setup env for all services${Color_Off}"
@@ -135,7 +135,7 @@ setup_env_single() {
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
     sed -i "s/<HM_PORT>/$HM_PORT/g" $1.env
     sed -i "s/<RECORDER_PORT>/$RECORDER_PORT/g" $1.env
-    sed -i "s|<REDIS_URI>|$REDIS_URI|g" $1.env
+    sed -i "s|<REDIS_URL>|$REDIS_URL|g" $1.env
 
     MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
     MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
