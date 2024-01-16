@@ -247,11 +247,11 @@ start() {
         (
             cd $DESTINATION_FOLDER
             source $env_file
-            cd "$DIRECTORY"
             if ! grep -q "PROCESS_NAME" $env_file; then
                 echo "SKIP: $env_file does not have PROCESS_NAME"
                 exit 1
             fi
+            cd "$DIRECTORY"
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
