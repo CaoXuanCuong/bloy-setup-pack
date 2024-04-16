@@ -235,7 +235,8 @@ init_db() {
                 echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
                 exit
             fi
-            if [ -f ".sequelizerc" ]; then
+
+            if grep -q "db-init" package.json; then
                 echo "${Green}----------- INIT DB ${DIRECTORY^^} ------------${Color_Off}"
                 npm run db-init
             fi
@@ -255,7 +256,7 @@ init_db_single() {
         echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
         return
     fi
-    if [ -f ".sequelizerc" ]; then
+    if grep -q "db-init" package.json; then
         echo "${Green}----------- INIT DB ${DIRECTORY^^} ------------${Color_Off}"
         npm run db-init
     fi
@@ -281,6 +282,7 @@ update_db() {
 
 start_services() {
     if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
+        source /usr/share/.shell_env
         cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
         docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
         echo "INFO: start rabbitmq container"
@@ -296,7 +298,7 @@ start() {
             cd "$DIRECTORY"
 
             if [ $env_file == "cms.env" ]; then
-                continue
+                exit
             fi
 
             # check if process is running
@@ -571,6 +573,9 @@ clean_process)
     ;;
 clean)
     clean
+    ;;
+setup_web_cms
+    setup_web_cms
     ;;
 *)
     source ../core/utils.sh
