@@ -80,6 +80,21 @@ update_env_single() {
     cp $1.env $DIRECTORY/.env
 }
 
+setup_web_cms() {
+    (
+        mkdir -p temp
+        cp web-cms.env temp/web-cms.env
+        sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" temp/web-cms.env
+        sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" temp/web-cms.env
+        sed -i "s/<API_VERSION>/$API_VERSION/g" temp/web-cms.env
+        sed -i "s/<EXTENSION_ID>/$EXTENSION_ID/g" temp/web-cms.env
+        sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/g" temp/web-cms.env
+        sed -i "s/<n>/$DEV_SITE/g" temp/web-cms.env
+        sed -i "s/<CMS_PORT>/$CMS_PORT/g" temp/web-cms.env
+        mv temp/web-cms.env $DESTINATION_FOLDER/code_cms/web/.env
+    )
+}
+
 setup_env() {
     for env_file in "${env_files[@]}"; do
         cp "$env_file" "$DESTINATION_FOLDER/$env_file"
@@ -190,7 +205,7 @@ init_db() {
                 echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
                 exit
             fi
-            if [ -f "src/.sequelizerc" ]; then
+            if grep -q "db-init" package.json; then
                 echo "${Green}----------- INIT DB ${DIRECTORY^^} ------------${Color_Off}"
                 npm run db-init
             fi
@@ -399,6 +414,7 @@ init_single)
 install)
     init_code
     setup_env
+    setup_web_cms
     init_db
     post_setup
     start
@@ -476,6 +492,9 @@ clean_process)
     ;;
 clean)
     clean
+    ;;
+setup_web_cms)
+    setup_web_cms
     ;;
 *)
     source ../core/utils.sh
