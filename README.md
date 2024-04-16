@@ -54,7 +54,7 @@ bash setup_ssh_key.sh
 
 ```bash
 mkdir -p ~/BSS
-git clone git@bitbucket.org:bsssupport/shopify-dev-setup-pack.git ~/BSS/shopify-dev-setup-pack
+git clone git@sbc-gitlab.bsscommerce.com:SDO/shopify-dev-setup-pack.git ~/BSS/shopify-dev-setup-pack
 ```
 2.3 Config git user
 
