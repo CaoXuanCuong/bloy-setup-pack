@@ -573,7 +573,7 @@ clean_process)
 clean)
     clean
     ;;
-setup_web_cms
+setup_web_cms)
     setup_web_cms
     ;;
 *)
