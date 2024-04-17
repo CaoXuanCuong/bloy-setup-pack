@@ -83,6 +83,8 @@ update_env_single() {
 setup_web_cms() {
     (
         mkdir -p temp
+        source cms.env
+        source app.env
         cp web-cms.env temp/web-cms.env
         sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" temp/web-cms.env
         sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" temp/web-cms.env
@@ -91,7 +93,7 @@ setup_web_cms() {
         sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/g" temp/web-cms.env
         sed -i "s/<n>/$DEV_SITE/g" temp/web-cms.env
         sed -i "s/<CMS_PORT>/$CMS_PORT/g" temp/web-cms.env
-        mv temp/web-cms.env $DESTINATION_FOLDER/code_cms/web/.env
+        mv temp/web-cms.env $DESTINATION_FOLDER/$DIRECTORY/web/.env
     )
 }
 
