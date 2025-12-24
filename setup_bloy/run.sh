@@ -1,8 +1,4 @@
 #!/bin/bash
-
-Color_Off=$(tput sgr0) # Text Reset
-Red=$(tput setaf 1)    # Red
-
 option="${1}"
 shift 1
 
@@ -19,10 +15,16 @@ while getopts ":p" opt; do
     case $opt in
     p)
         echo "${Green}-------- Enter app environment. --------${Color_Off}"
+        read -p "SHOPIFY_API_KEY: " SHOPIFY_API_KEY
+
+        read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
+
         read -p "API_VERSION (Default: 2023-01): " API_VERSION
         API_VERSION=${API_VERSION:-2023-01}
 
         cp app.env.example app.env
+        sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" app.env
+        sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" app.env
         sed -i "s/<API_VERSION>/$API_VERSION/g" app.env
         ;;
     esac
@@ -36,6 +38,16 @@ fi
 source app.env
 source /usr/share/.shell_env
 
+if [ -z "$SHOPIFY_API_KEY" ] || [ "$SHOPIFY_API_KEY" == "<SHOPIFY_API_KEY>" ]; then
+    echo "ERROR: SHOPIFY_API_KEY is not set"
+    exit 1
+fi
+
+if [ -z "$SHOPIFY_API_SECRET_KEY" ] || [ "$SHOPIFY_API_SECRET_KEY" == "<SHOPIFY_API_SECRET_KEY>" ]; then
+    echo "ERROR: SHOPIFY_API_SECRET_KEY is not set"
+    exit 1
+fi
+
 if [ -z "$API_VERSION" ] || [ "$API_VERSION" == "<API_VERSION>" ]; then
     echo "ERROR: API_VERSION is not set"
     exit 1
@@ -45,6 +57,7 @@ mkdir -p $DESTINATION_FOLDER
 declare -a env_files=(
     api.env
     cms.env
+    extension.env
 )
 
 update_env() {
@@ -53,6 +66,10 @@ update_env() {
             cd $DESTINATION_FOLDER
             source $env_file
             cp $env_file $DIRECTORY/.env
+
+            if [[ "$env_file" == *extension* ]]; then
+                cp $env_file $DIRECTORY/extensions/.env
+            fi
         )
     done
 }
@@ -81,17 +98,22 @@ setup_env() {
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" "${env_files[@]}"
     sed -i "s/<API_PORT>/$API_PORT/g" "${env_files[@]}"
 
-    sed -i "s/<DB_HOST>/$DB_HOST/g" "${env_files[@]}"
-    sed -i "s/<DB_PORT>/$DB_PORT/g" "${env_files[@]}"
-    sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" "${env_files[@]}"
-    sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" "${env_files[@]}"
-    sed -i "s/<DB_NAME>/$DB_NAME/g" "${env_files[@]}"
+    MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
+    MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
 
-    sed -i "s/<DB_USERNAME_LOGIN>/$DB_USERNAME_LOGIN/g" "${env_files[@]}"
-    sed -i "s/<DB_PASSWORD_LOGIN>/$DB_PASSWORD_LOGIN/g" "${env_files[@]}"
-    sed -i "s/<DB_NAME_LOGIN>/$DB_NAME_LOGIN/g" "${env_files[@]}"
-    sed -i "s/<DB_HOST_LOGIN>/$DB_HOST_LOGIN/g" "${env_files[@]}"
-    sed -i "s/<DB_PORT_LOGIN>/$DB_PORT_LOGIN/g" "${env_files[@]}"
+    if [[ "$MONGO_AUTH_ADMIN" == "true" ]]; then
+        MONGO_URI="$MONGO_URI&authSource=admin"
+    fi
+
+    MONGO_URI_ESCAPED=$(printf '%s\n' "$MONGO_URI" | sed -e 's/[\/&]/\\&/g')
+
+    RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
+    AMQP_URI="$RABBITMQ_USER:$RABBITMQ_PASSWORD_ENCODED@$RABBITMQ_HOST:$RABBITMQ_PORT"
+
+    sed -i "s|<MONGO_URI>|$MONGO_URI_ESCAPED|g" "${env_files[@]}"
+    sed -i "s|<MONGO_SEED>|$MONGO_SEED|g" "${env_files[@]}"
+    sed -i "s|<AMQP_URI>|$AMQP_URI|g" "${env_files[@]}"
+    sed -i "s|<REDIS_URL>|$REDIS_URL|g" "${env_files[@]}"
 
     update_env
     echo "${Green}DONE: setup env for all services${Color_Off}"
@@ -112,18 +134,23 @@ setup_env_single() {
 
     sed -i "s/<CMS_PORT>/$CMS_PORT/g" $1.env
     sed -i "s/<API_PORT>/$API_PORT/g" $1.env
+    sed -i "s|<REDIS_URL>|$REDIS_URL|g" $1.env
 
-    sed -i "s/<DB_HOST>/$DB_HOST/g" $1.env
-    sed -i "s/<DB_PORT>/$DB_PORT/g" $1.env
-    sed -i "s/<DB_USERNAME>/$DB_USERNAME/g" $1.env
-    sed -i "s/<DB_PASSWORD>/$DB_PASSWORD/g" $1.env
-    sed -i "s/<DB_NAME>/$DB_NAME/g" $1.env
+    MONGO_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$MONGO_PASSWORD'))")
+    MONGO_URI="mongodb://$MONGO_USER:$MONGO_PASSWORD_ENCODED@$MONGO_HOST:$MONGO_PORT/$MONGO_DB?retryWrites=true&w=majority"
 
-    sed -i "s/<DB_USERNAME_LOGIN>/$DB_USERNAME_LOGIN/g" $1.env
-    sed -i "s/<DB_PASSWORD_LOGIN>/$DB_PASSWORD_LOGIN/g" $1.env
-    sed -i "s/<DB_NAME_LOGIN>/$DB_NAME_LOGIN/g" $1.env
-    sed -i "s/<DB_HOST_LOGIN>/$DB_HOST_LOGIN/g" $1.env
-    sed -i "s/<DB_PORT_LOGIN>/$DB_PORT_LOGIN/g" $1.env
+    if [[ "$MONGO_AUTH_ADMIN" == "true" ]]; then
+        MONGO_URI="$MONGO_URI&authSource=admin"
+    fi
+
+    MONGO_URI_ESCAPED=$(printf '%s\n' "$MONGO_URI" | sed -e 's/[\/&]/\\&/g')
+
+    RABBITMQ_PASSWORD_ENCODED=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$RABBITMQ_PASSWORD'))")
+    AMQP_URI="$RABBITMQ_USER:$RABBITMQ_PASSWORD_ENCODED@$RABBITMQ_HOST:$RABBITMQ_PORT"
+
+    sed -i "s|<MONGO_URI>|$MONGO_URI_ESCAPED|g" "${env_files[@]}"
+    sed -i "s|<MONGO_SEED>|$MONGO_SEED|g" $1.env
+    sed -i "s|<AMQP_URI>|$AMQP_URI|g" $1.env
 
     update_env_single $1
     echo "DONE: setup env for $1"
@@ -155,7 +182,11 @@ init_code() {
             echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
             git clone "$GIT_URL" .
             if [ -f "package.json" ]; then
-                pnpm install
+                if [[ "$DIRECTORY" == *cms* ]]; then
+                    npm run install:all
+                else
+                    pnpm install
+                fi
             fi
         )
     done
@@ -168,68 +199,83 @@ init_code_single() {
     fi
     cp "$1.env" "$DESTINATION_FOLDER/$1.env"
     cd $DESTINATION_FOLDER
-    source $1.env
     rm -rf $DIRECTORY
     mkdir -p $DIRECTORY
     echo "${Green}----------- INFO: Install code and packages for ${DIRECTORY^^} ------------${Color_Off}"
     cd $DIRECTORY
     git clone $GIT_URL $DESTINATION_FOLDER/$DIRECTORY
-    pnpm install
-}
-
-init_db() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd "$DIRECTORY"
-            if [ ! -f "package.json" ]; then
-                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
-                exit
-            fi
-            if [ -f ".sequelizerc" ]; then
-                npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
-            fi
-        )
-    done
-}
-
-init_db_single() {
-    if [ -z "$1" ]; then
-        echo "Usage: ./.sh init_db_single <name>"
-        exit 1
-    fi
-    cd $DESTINATION_FOLDER
-    source $1.env
-    cd "$DIRECTORY"
-    if [ ! -f "package.json" ]; then
-        echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
-        return
-    fi
-    if [ -f ".sequelizerc" ]; then
-        npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
+    if [ -f "package.json" ]; then
+        if [[ "$DIRECTORY" == *cms* ]]; then
+            npm run install:all
+        else
+            pnpm install
+        fi
     fi
 }
 
-update_db() {
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd "$DIRECTORY"
-            if [ ! -f "package.json" ]; then
-                echo "${Red}ERROR: package.json is not exist in $DIRECTORY${Color_Off}"
-                exit
-            fi
-            if [ -f ".sequelizerc" ]; then
-                npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all
-            fi
-        )
-    done
+post_setup_cms() {
+    (
+        set -e
+
+        cd "$DESTINATION_FOLDER"
+
+        if [ -f cms.env ]; then
+            set -a
+            source cms.env
+            set +a
+        fi
+
+        cd "$DIRECTORY"
+
+        find extensions -type f -name "shopify.extension.toml.example" \
+        -exec bash -c '
+            for file in "$@"; do
+                dir=$(dirname "$file")
+                cp "$file" "$dir/shopify.extension.toml"
+            done
+        ' _ {} +
+
+        cd extensions
+        echo "# npm run build-bloy"
+        npm run build-bloy
+    )
 }
 
-post_setup() {
-    echo "SKIP: No post setup needed"
+post_setup_api() {
+    (
+        cd $DESTINATION_FOLDER
+        source api.env
+        cd "$DIRECTORY"
+        echo "# npm run build"
+        npm run build
+        echo "# npm run console generateRSAKeyPair"
+        npm run console generateRSAKeyPair
+    )
+}
+
+install_dependencies() {
+    if command -v mongod &>/dev/null; then
+        echo "${Red} -------- Disable mongodb service --------${Color_Off}"
+        systemctl stop mongod
+        systemctl disable mongod
+    fi
+
+    if command -v rabbitmq-server &>/dev/null; then
+        echo "${Red} -------- Disable rabbitmq service --------${Color_Off}"
+        systemctl stop rabbitmq-server
+        systemctl disable rabbitmq-server
+    fi
+
+    if [ "$(docker ps -q -f name=mongodb)" == "" ]; then
+        cp ../tools/mongodb/.env.example ../tools/mongodb/.env
+        docker compose -f ../tools/mongodb/docker-compose.yml up -d
+        echo "INFO: start mongodb container"
+    fi
+    if [ "$(docker ps -q -f name=rabbitmq)" == "" ]; then
+        cp ../tools/rabbitmq/.env.example ../tools/rabbitmq/.env
+        docker compose -f ../tools/rabbitmq/docker-compose.yml up -d
+        echo "INFO: start rabbitmq container"
+    fi
 }
 
 start() {
@@ -237,17 +283,20 @@ start() {
         (
             cd $DESTINATION_FOLDER
             source $env_file
+            if ! grep -q "PROCESS_NAME" $env_file; then
+                echo "SKIP: $env_file does not have PROCESS_NAME"
+                exit 1
+            fi
             cd "$DIRECTORY"
-            # check if process is running
             pm2 describe $PROCESS_NAME >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
                 pm2 restart $PROCESS_NAME --update-env
             else
-                if [ ! -f "package.json" ]; then
-                    exit
+                if [ -f "package.json" ]; then
+                    echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+                    pm2 start npm --name $PROCESS_NAME -- run dev
                 fi
-                NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
             fi
         )
     done
@@ -255,24 +304,31 @@ start() {
 }
 
 start_single() {
-    if [ -z "$1" ]; then
+    (
+        if [ -z "$1" ]; then
         echo "Usage: ./.sh start_single <name>"
         exit 1
-    fi
-    cd $DESTINATION_FOLDER
-    source $1.env
-    cd "$DIRECTORY"
-    # check if process is running
-    pm2 describe $PROCESS_NAME >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
-        pm2 restart $PROCESS_NAME --update-env
-    else
-        if [ ! -f "package.json" ]; then
-            exit
         fi
-        NODE_ENV=development pm2 start npm --name $PROCESS_NAME -- run dev
-    fi
+        cd $DESTINATION_FOLDER
+        if ! grep -q "PROCESS_NAME" $1.env; then
+            echo "SKIP: $1.env does not have PROCESS_NAME"
+            exit 1
+        fi
+        source $1.env
+        cd "$DIRECTORY"
+        
+        pm2 describe $PROCESS_NAME >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "${Green}INFO: pm2 restart $PROCESS_NAME${Color_Off}"
+            pm2 restart $PROCESS_NAME --update-env
+        else
+            if [ -f "package.json" ]; then
+                echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+                pm2 start npm --name $PROCESS_NAME -- run dev
+            fi
+            pm2 save
+        fi
+    )
 }
 
 stop() {
@@ -303,6 +359,16 @@ clean() {
         rm -rf "$DIRECTORY"
     done
     pm2 save --force
+
+    if [ "$(docker ps -q -f name=mongodb)" != "" ]; then
+        docker-compose -f ../tools/mongodb/docker-compose.yml down
+        echo "INFO: stop mongodb container"
+    fi
+
+    if [ "$(docker ps -q -f name=rabbitmq)" != "" ]; then
+        docker-compose -f ../tools/rabbitmq/docker-compose.yml down
+        echo "INFO: stop rabbitmq container"
+    fi
 }
 
 install_single() {
@@ -312,7 +378,6 @@ install_single() {
     fi
     (init_code_single $1)
     (setup_env_single $1)
-    (init_db_single $1)
     (start_single $1)
 }
 
@@ -322,40 +387,22 @@ install_packages() {
             cd $DESTINATION_FOLDER
             source $env_file
             cd "$DIRECTORY"
-            if [ ! -f "package.json" ]; then
-                exit
+            if [ -f "package.json" ]; then
+                echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
+                if [[ "$DIRECTORY" == *cms* ]]; then
+                    npm run install:all
+                else
+                    pnpm install
+                fi
             fi
-             echo "${Green}----------- INSTALL PACKAGES ${DIRECTORY^^} ------------${Color_Off}"
-            pnpm install
         )
     done
-}
-
-start_production() {
-    (clean_process)
-
-    for env_file in "${env_files[@]}"; do
-        (
-            cd $DESTINATION_FOLDER
-            source $env_file
-            cd "$DIRECTORY"
-
-            if [ ! -f "package.json" ]; then
-                exit
-            fi
-            if [ $env_file == "cms.env" ]; then
-                npm run build
-            fi
-            if [ $env_file == "api.env" ]; then
-                npm run build-script
-            fi
-            pm2 start npm --name $PROCESS_NAME-prod -- run start
-        )
-    done
-    pm2 save
 }
 
 case ${option} in
+install_dependencies)
+    install_dependencies
+    ;;
 init)
     init_code
     # setup_env
@@ -369,23 +416,17 @@ init_single)
     setup_env_single $1
     ;;
 install)
-    echo -e "\033[32mInstalling...\033[0m"
+    install_dependencies
     init_code
     setup_env
-    init_db
-    post_setup
+    post_setup_cms
+    post_setup_api
     start
+
     echo "DONE: installed all services"
     b2b domain
     ;;
-init_db)
-    init_db
-    ;;
-update_db)
-    update_db
-    ;;
 install_single)
-    echo -e "\033[32mInstalling...\033[0m"
     install_single $1
     setup_env_single api
     ;;
@@ -423,20 +464,11 @@ update_env_single)
     update_env_single $1
     ;;
 post_setup)
-    post_setup
+    post_setup_cms
+    post_setup_api
     ;;
 start)
     start
-    ;;
-start_single)
-    if [ -z "$1" ]; then
-        echo "Usage: ./.sh start_single <name>"
-        exit 1
-    fi
-    start_single $1
-    ;;
-start_production)
-    start_production
     ;;
 stop)
     stop
@@ -462,8 +494,6 @@ clean)
     echo "   update_env : update cms, api .env file"
     echo "   update_env_single <name> : update single env file"
     echo "   start      : start processes"
-    echo "   start_single <name> : start single process"
-    echo "   start_production : start production processes"
     echo "   stop       : stop processes"
     echo "   clean_process : clean processes"
     echo "   clean      : clean processes and code"

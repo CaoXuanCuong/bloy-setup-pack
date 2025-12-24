@@ -190,7 +190,7 @@ function install_node() {
     return
   fi
 
-  echo "${Green}--------Install nvm and node 18.12.0--------${Color_Off}"
+  echo "${Green}--------Install nvm and node 20.10.0--------${Color_Off}"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 
   if ! grep -q "export NVM_DIR" ~/.zshrc; then
@@ -210,13 +210,13 @@ INNER_EOF
   fi
 
   source ~/.nvm/nvm.sh
-  nvm install 18.12.0
-  nvm alias default 18.12.0
+  nvm install 20.10.0
+  nvm alias default 20.10.0
   nvm use default
   corepack enable
   npm install pm2 nodemon -g
   pm2 startup
-  sudo env PATH=\$PATH:~/.nvm/versions/node/v18.12.0/bin ~/.nvm/versions/node/v18.12.0/lib/node_modules/pm2/bin/pm2 startup systemd -u $SUDO_USER --hp ~
+  sudo env PATH=\$PATH:~/.nvm/versions/node/v20.10.0/bin ~/.nvm/versions/node/v20.10.0/lib/node_modules/pm2/bin/pm2 startup systemd -u $SUDO_USER --hp ~
 EOF
 }
 

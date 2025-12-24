@@ -4,14 +4,10 @@ services:
     image: mongo:6.0.9
     container_name: mongodb
     ports:
-      - "${MONGODB_PORT}:27017"
+      - "27010:27017"
     volumes:
       - mongodb-data:/data/db
     restart: always
-    environment:
-      MONGO_INITDB_DATABASE: "${MONGODB_DATABASE}"
-      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_ROOT_USERNAME}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_ROOT_PASSWORD}"
     networks:
       - bss_dev
 volumes:

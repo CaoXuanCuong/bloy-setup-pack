@@ -15,10 +15,10 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     networks:
-      - bss_dev
+      - myapp_net
 volumes:
   rabbitmq-data:
     driver: local
 networks:
-  bss_dev:
+  myapp_net:
     driver: bridge
