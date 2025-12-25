@@ -19,6 +19,12 @@ while getopts ":p" opt; do
 
         read -p "SHOPIFY_API_SECRET_KEY: " SHOPIFY_API_SECRET_KEY
 
+        read -p "APP_NAME: " APP_NAME
+
+        read -p "APP_HANDLE: " APP_HANDLE
+
+        read -p "STOREFRONT_SHOPIFY_DOMAIN: " STOREFRONT_SHOPIFY_DOMAIN
+        
         read -p "API_VERSION (Default: 2023-01): " API_VERSION
         API_VERSION=${API_VERSION:-2023-01}
 
@@ -60,6 +66,10 @@ declare -a env_files=(
     extension.env
 )
 
+declare -a toml_files=(
+    shopify.app.toml
+)
+
 update_env() {
     for env_file in "${env_files[@]}"; do
         (
@@ -70,6 +80,15 @@ update_env() {
             if [[ "$env_file" == *extension* ]]; then
                 cp $env_file $DIRECTORY/extensions/.env
             fi
+        )
+    done
+}
+
+update_toml() {
+    for toml_file in "${toml_files[@]}"; do
+        (
+            cd $DESTINATION_FOLDER
+            cp $toml_file bloy-cms/shopify.app.toml
         )
     done
 }
@@ -117,6 +136,24 @@ setup_env() {
 
     update_env
     echo "${Green}DONE: setup env for all services${Color_Off}"
+}
+
+setup_toml() {
+    cp shopify.app.toml "$DESTINATION_FOLDER/shopify.app.toml"
+    echo "${Green}D12312321321321${Color_Off}"
+    cd $DESTINATION_FOLDER
+    sed -i "s/<CF_ZONE_NAME>/$CF_ZONE_NAME/g" "${toml_files[@]}"
+    sed -i "s/<n>/$DEV_SITE/g" "${toml_files[@]}"
+    sed -i "s/<API_VERSION>/$API_VERSION/g" "${toml_files[@]}"
+    sed -i "s/<SHOPIFY_API_KEY>/$SHOPIFY_API_KEY/g" "${toml_files[@]}"
+    sed -i "s/<SHOPIFY_API_SECRET_KEY>/$SHOPIFY_API_SECRET_KEY/g" "${toml_files[@]}"
+
+    sed -i "s/<APP_NAME>/$APP_NAME/g" "${toml_files[@]}"
+    sed -i "s/<APP_HANDLE>/$APP_HANDLE/g" "${toml_files[@]}"
+    sed -i "s/<STOREFRONT_SHOPIFY_DOMAIN>/$STOREFRONT_SHOPIFY_DOMAIN/g" "${toml_files[@]}"
+    
+    update_toml
+    echo "${Green}DONE: setup toml for all services${Color_Off}"
 }
 
 setup_env_single() {
@@ -175,6 +212,7 @@ init_code() {
 
     for env_file in "${env_files[@]}"; do
         (
+            [[ "$env_file" == extension.env ]] && continue
             cd $DESTINATION_FOLDER
             source $env_file
             mkdir -p $DIRECTORY
@@ -294,8 +332,13 @@ start() {
                 pm2 restart $PROCESS_NAME --update-env
             else
                 if [ -f "package.json" ]; then
-                    echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
-                    pm2 start npm --name $PROCESS_NAME -- run dev
+                    if [[ "$PROCESS_NAME" == *api* ]]; then
+                        echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run start:dev${Color_Off}}"
+                        pm2 start npm --name $PROCESS_NAME -- run start:dev
+                    else
+                        echo "${Green}INFO: pm2 start npm --name $PROCESS_NAME -- run dev${Color_Off}}"
+                        pm2 start npm --name $PROCESS_NAME -- run dev
+                    fi
                 fi
             fi
         )
@@ -421,7 +464,8 @@ install)
     setup_env
     post_setup_cms
     post_setup_api
-    start
+    setup_toml
+    # start
 
     echo "DONE: installed all services"
     b2b domain
